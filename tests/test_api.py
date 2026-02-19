@@ -55,3 +55,21 @@ def test_align_endpoint_ctc_backend() -> None:
     payload = response.json()
     assert payload["metadata"]["alignment_backend"] == "ctc_trellis"
     assert payload["metadata"]["model_id"] == "ctc-trellis-v0"
+
+
+def test_align_endpoint_phoneme_first_backend() -> None:
+    client = TestClient(create_app())
+    response = client.post(
+        "/v1/align",
+        json={
+            "audio_path": "sample.wav",
+            "transcript": "hello world",
+            "language": "en",
+            "backend": "phoneme_first",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["metadata"]["alignment_backend"] == "phoneme_first"
+    assert "facebook/wav2vec2-xlsr-53-espeak-cv-ft" in payload["metadata"]["model_id"]

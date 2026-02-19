@@ -114,11 +114,16 @@ Backend behavior:
 - `ctc_trellis`: trellis/Viterbi decoder (interim CTC backend)
   - uses Hugging Face CTC emissions when available
   - falls back to deterministic simulated emissions otherwise
+- `phoneme_first`: spec-aligned routing backend
+  - English: Parakeet-style CTC word boundaries -> constrained phoneme timing
+  - Other languages: phoneme timing first -> word boundaries grouped from phonemes
+  - Fallback: CTC word timing path when phoneme path cannot produce alignments
 
 Use backend selection:
 
 ```bash
 uv run voxalign align sample.wav "hello world" --backend ctc_trellis
+uv run voxalign align sample.wav "hello world" --backend phoneme_first
 ```
 
 Enable Hugging Face emissions (optional):
@@ -156,6 +161,7 @@ Note: `nvidia/parakeet-tdt-0.6b-v3` is a Transducer/TDT model and needs a dedica
 Target phoneme-aligner ID for the phoneme-first path:
 
 - `facebook/wav2vec2-xlsr-53-espeak-cv-ft`
+- Override with `VOXALIGN_PHONEME_MODEL_ID=<hf_model_id>`
 
 Write result to file:
 

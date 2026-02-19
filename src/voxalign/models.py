@@ -22,7 +22,7 @@ class AlignRequest(BaseModel):
     audio_path: str = Field(min_length=1)
     transcript: str = Field(min_length=1)
     language: str = Field(default="auto", min_length=2)
-    backend: Literal["uniform", "ctc_trellis"] = "uniform"
+    backend: Literal["uniform", "ctc_trellis", "phoneme_first"] = "uniform"
     include_phonemes: bool = True
     sample_rate_hz: int | None = Field(default=None, ge=8_000, le=192_000)
 
@@ -50,7 +50,7 @@ class AlignmentMetadata(BaseModel):
     """Metadata describing how an alignment was produced."""
 
     language: str
-    alignment_backend: Literal["uniform", "ctc_trellis"]
+    alignment_backend: Literal["uniform", "ctc_trellis", "phoneme_first"]
     normalizer_id: str
     token_count: int = Field(ge=0)
     timing_source: Literal["audio", "heuristic"]

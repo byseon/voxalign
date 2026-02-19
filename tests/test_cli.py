@@ -59,3 +59,15 @@ def test_cli_align_ctc_backend(capsys) -> None:
     payload = json.loads(captured.out)
     assert payload["metadata"]["alignment_backend"] == "ctc_trellis"
     assert payload["metadata"]["model_id"] == "ctc-trellis-v0"
+
+
+def test_cli_align_phoneme_first_backend(capsys) -> None:
+    exit_code = main(
+        ["align", "sample.wav", "hello world", "--language", "en", "--backend", "phoneme_first"]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    payload = json.loads(captured.out)
+    assert payload["metadata"]["alignment_backend"] == "phoneme_first"
+    assert "facebook/wav2vec2-xlsr-53-espeak-cv-ft" in payload["metadata"]["model_id"]

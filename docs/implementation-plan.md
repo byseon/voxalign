@@ -52,7 +52,7 @@ This plan is now synced to the detailed Notion architecture content provided in-
 4. Phoneme-first pipeline foundation
    - Add VAD, ASR, and G2P provider interfaces.
    - Add word->phoneme mapping contract to pipeline objects.
-   - Status: in progress
+   - Status: in progress (backend routing implemented; provider modularization pending)
 5. IPA aligner integration
    - Integrate `facebook/wav2vec2-xlsr-53-espeak-cv-ft` as phoneme CTC aligner.
    - Add constrained Viterbi decoding over IPA target sequence.

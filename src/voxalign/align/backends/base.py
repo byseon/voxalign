@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
-from voxalign.models import WordAlignment
+from voxalign.models import PhonemeAlignment, WordAlignment
 
-BackendName = Literal["uniform", "ctc_trellis"]
+BackendName = Literal["uniform", "ctc_trellis", "phoneme_first"]
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,7 @@ class BackendResult:
     words: list[WordAlignment]
     model_id: str
     algorithm: str
+    phonemes: list[PhonemeAlignment] | None = None
 
 
 class AlignmentBackend(Protocol):

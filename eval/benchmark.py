@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--backend",
         default="ctc_trellis",
-        choices=["uniform", "ctc_trellis"],
+        choices=["uniform", "ctc_trellis", "phoneme_first"],
         help="Alignment backend",
     )
     parser.add_argument(

@@ -38,9 +38,12 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         audio_path=request.audio_path,
         sample_rate_hz=resolved_sample_rate_hz,
     )
-    phoneme_alignments = (
-        _build_phoneme_alignments(backend_result.words) if request.include_phonemes else []
-    )
+    if request.include_phonemes:
+        phoneme_alignments = backend_result.phonemes or _build_phoneme_alignments(
+            backend_result.words
+        )
+    else:
+        phoneme_alignments = []
 
     metadata = AlignmentMetadata(
         language=language_pack.code,

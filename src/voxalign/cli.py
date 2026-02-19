@@ -27,7 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
     align.add_argument(
         "--backend",
         default="uniform",
-        choices=["uniform", "ctc_trellis"],
+        choices=["uniform", "ctc_trellis", "phoneme_first"],
         help="Alignment backend (default: uniform)",
     )
     align.add_argument(

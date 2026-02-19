@@ -97,6 +97,42 @@ def test_run_alignment_ctc_backend_selection() -> None:
     assert response.metadata.algorithm == "ctc-viterbi-simulated-emissions"
 
 
+def test_run_alignment_phoneme_first_english() -> None:
+    response = run_alignment(
+        AlignRequest(
+            audio_path="audio.wav",
+            transcript="hello world",
+            language="en",
+            backend="phoneme_first",
+            include_phonemes=True,
+        )
+    )
+
+    assert response.metadata.alignment_backend == "phoneme_first"
+    assert "facebook/wav2vec2-xlsr-53-espeak-cv-ft" in response.metadata.model_id
+    assert "phoneme-first-en-word-ctc-then-ipa-constrained" in response.metadata.algorithm
+    assert response.phonemes
+    assert response.phonemes[0].word_index == 0
+
+
+def test_run_alignment_phoneme_first_korean() -> None:
+    response = run_alignment(
+        AlignRequest(
+            audio_path="audio.wav",
+            transcript="안녕하세요 반갑습니다",
+            language="ko",
+            backend="phoneme_first",
+            include_phonemes=True,
+        )
+    )
+
+    assert response.metadata.alignment_backend == "phoneme_first"
+    assert response.metadata.model_id == "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
+    assert response.metadata.algorithm == "phoneme-first-multilingual-ipa-ctc"
+    assert len(response.words) == 2
+    assert response.phonemes
+
+
 def _write_wav(path: Path, sample_rate_hz: int, duration_sec: float) -> None:
     frame_count = int(sample_rate_hz * duration_sec)
     silence_pcm16 = b"\x00\x00" * frame_count
