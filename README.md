@@ -20,6 +20,8 @@ Phase 2 baseline in progress: uv tooling, alignment schema, and deterministic pi
 
 ## Documentation
 
+- Operator guide: `AGENT.md`
+- Project charter and milestone map: `PROJECT.md`
 - Implementation plan: `docs/implementation-plan.md`
 
 ## Quick start
@@ -81,6 +83,10 @@ Run all hooks manually:
 ```bash
 uv run pre-commit run --all-files
 ```
+
+## Milestone policy
+
+- Every completed milestone must be committed and pushed to remote.
 
 ## Repository
 
