@@ -8,7 +8,7 @@ Multilingual forced aligner for precise word- and phoneme-level timestamps.
 
 ## Status
 
-Phase 1 scaffold in progress: package, CLI, API health endpoint, and CI baseline.
+Phase 2 baseline in progress: uv tooling, alignment schema, and deterministic pipeline scaffold.
 
 ## Planned capabilities
 
@@ -25,33 +25,56 @@ Phase 1 scaffold in progress: package, CLI, API health endpoint, and CI baseline
 ## Quick start
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-voxalign --help
+uv sync --dev
+uv run voxalign --help
 ```
 
 ## Local usage
 
-CLI placeholder:
+CLI baseline alignment:
 
 ```bash
-voxalign align sample.wav "hello world" --language en
+uv run voxalign align sample.wav "hello world" --language en
+```
+
+Write result to file:
+
+```bash
+uv run voxalign align sample.wav "hello world" --language en -o outputs/alignment.json
 ```
 
 Run API locally:
 
 ```bash
-uvicorn voxalign.api:app --reload
+uv run uvicorn voxalign.api:app --reload
 curl http://127.0.0.1:8000/health
+curl -X POST http://127.0.0.1:8000/v1/align \
+  -H "content-type: application/json" \
+  -d '{"audio_path":"sample.wav","transcript":"hello world","language":"en"}'
 ```
 
 ## Development checks
 
 ```bash
-ruff check src tests
-mypy src
-pytest
+uv run ruff check src tests
+uv run ruff format --check src tests
+uv run mypy src
+uv run pytest -q
+```
+
+## Pre-commit hooks
+
+Install hooks:
+
+```bash
+uv run pre-commit install
+uv run pre-commit install --hook-type pre-push
+```
+
+Run all hooks manually:
+
+```bash
+uv run pre-commit run --all-files
 ```
 
 ## Repository

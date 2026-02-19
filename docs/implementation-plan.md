@@ -9,9 +9,14 @@ Repo: `github.com/byseon/voxalign`
 - Phase 1 scaffold started and committed:
   - Python package layout and build metadata (`pyproject.toml`)
   - Config profiles (`configs/dev.toml`, `configs/prod.toml`)
-  - CLI entrypoint (`voxalign`) and placeholder `align` command
+  - CLI entrypoint (`voxalign`)
   - FastAPI app with `/health` endpoint
   - Test suite skeleton and CI workflow
+- Phase 2 baseline started:
+  - Canonical alignment schema added (request/response, word, phoneme, metadata)
+  - Deterministic baseline alignment pipeline implemented for contract testing
+  - `POST /v1/align` endpoint and CLI JSON output wired to shared pipeline
+  - Tooling switched to `uv` workflows and `pre-commit` hooks added
 
 ## 1) Scope and assumptions
 

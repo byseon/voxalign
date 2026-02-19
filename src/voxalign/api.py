@@ -6,7 +6,8 @@ from fastapi import FastAPI
 
 from voxalign import __version__
 from voxalign.config import load_config
-from voxalign.models import HealthResponse
+from voxalign.core import run_alignment
+from voxalign.models import AlignRequest, AlignResponse, HealthResponse
 
 
 def create_app() -> FastAPI:
@@ -21,6 +22,10 @@ def create_app() -> FastAPI:
     @app.get("/health", response_model=HealthResponse, tags=["system"])
     def health() -> HealthResponse:
         return HealthResponse(status="ok", version=__version__, env=config.env)
+
+    @app.post("/v1/align", response_model=AlignResponse, tags=["alignment"])
+    def align(request: AlignRequest) -> AlignResponse:
+        return run_alignment(request)
 
     return app
 

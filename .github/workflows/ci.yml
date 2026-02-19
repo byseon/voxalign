@@ -13,28 +13,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.11"
+          enable-cache: true
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+        run: uv sync --dev --frozen
 
-      - name: Lint
-        run: ruff check src tests
+      - name: Lint and format check
+        run: |
+          uv run ruff check src tests
+          uv run ruff format --check src tests
 
       - name: Type check
-        run: mypy src
+        run: uv run mypy src
 
       - name: Test
-        run: pytest
+        run: uv run pytest -q
 
       - name: CLI smoke
-        run: python -m voxalign.cli --help
+        run: uv run python -m voxalign.cli --help
 
       - name: API smoke
-        run: |
-          python -c "from voxalign.api import app; assert app is not None"
+        run: uv run python -c "from voxalign.api import app; assert app is not None"
+
+      - name: Pre-commit hooks
+        run: uv run pre-commit run --all-files

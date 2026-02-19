@@ -21,7 +21,10 @@ class AppConfig:
 
 def load_config(env_name: str | None = None, config_dir: Path | None = None) -> AppConfig:
     """Load configuration from `configs/<env>.toml` and environment overrides."""
-    env = env_name or os.getenv("VOXALIGN_ENV", "dev")
+    if env_name is None:
+        env = os.getenv("VOXALIGN_ENV") or "dev"
+    else:
+        env = env_name
     resolved_dir = config_dir or _default_config_dir()
     profile_path = resolved_dir / f"{env}.toml"
 
