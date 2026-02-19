@@ -38,7 +38,7 @@ def test_model_resolution_defaults(monkeypatch) -> None:
     monkeypatch.delenv("VOXALIGN_CTC_MODEL_KO", raising=False)
     monkeypatch.delenv("VOXALIGN_CTC_MODEL_DEFAULT", raising=False)
 
-    assert ctc_trellis._resolve_model_id("en") == "nvidia/parakeet-ctc-0.6b"
+    assert ctc_trellis._resolve_model_id("en") == "nvidia/parakeet-ctc-1.1b"
     assert ctc_trellis._resolve_model_id("de") == "facebook/mms-1b-all"
     assert ctc_trellis._resolve_model_id("ko") == "facebook/mms-1b-all"
     assert ctc_trellis._resolve_model_id("ja") == "facebook/mms-1b-all"
@@ -49,4 +49,4 @@ def test_mms_adapter_resolution() -> None:
     assert ctc_trellis._resolve_adapter_language("facebook/mms-1b-all", "fr-FR") == "fra"
     assert ctc_trellis._resolve_adapter_language("facebook/mms-1b-all", "ko") == "kor"
     assert ctc_trellis._resolve_adapter_language("facebook/mms-1b-all", "ja") is None
-    assert ctc_trellis._resolve_adapter_language("nvidia/parakeet-ctc-0.6b", "en") is None
+    assert ctc_trellis._resolve_adapter_language("nvidia/parakeet-ctc-1.1b", "en") is None

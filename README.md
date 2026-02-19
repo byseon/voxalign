@@ -8,7 +8,8 @@ Multilingual forced aligner for precise word- and phoneme-level timestamps.
 
 ## Status
 
-Phase 2 in progress: uv tooling, schema + normalization, audio timing, and trellis decoder core.
+Phase 3 transition in progress: phoneme-first architecture integration on top of the existing
+trellis baseline.
 
 ## Planned capabilities
 
@@ -17,6 +18,14 @@ Phase 2 in progress: uv tooling, schema + normalization, audio timing, and trell
 - CLI for local/batch processing
 - HTTP API for service integration
 - Evaluation harness for alignment quality and runtime
+
+## Target architecture (spec-synced)
+
+- Pipeline ordering: phoneme-first (`ASR -> G2P -> IPA CTC forced alignment -> word grouping`)
+- Primary phoneme aligner: `facebook/wav2vec2-xlsr-53-espeak-cv-ft`
+- English high-precision word-boundary path: `nvidia/parakeet-ctc-1.1b`
+- English verbatim ASR target: `nyrahealth/CrisperWhisper`
+- Multilingual ASR target: Whisper large-v3 (`faster-whisper`)
 
 ## Documentation
 
@@ -102,7 +111,7 @@ Timing behavior:
 Backend behavior:
 
 - `uniform` (default): even token distribution baseline
-- `ctc_trellis`: trellis/Viterbi decoder
+- `ctc_trellis`: trellis/Viterbi decoder (interim CTC backend)
   - uses Hugging Face CTC emissions when available
   - falls back to deterministic simulated emissions otherwise
 
@@ -117,7 +126,7 @@ Enable Hugging Face emissions (optional):
 ```bash
 uv sync --group asr
 VOXALIGN_CTC_USE_HF=1 \
-VOXALIGN_CTC_MODEL_ID=nvidia/parakeet-ctc-0.6b \
+VOXALIGN_CTC_MODEL_ID=nvidia/parakeet-ctc-1.1b \
 uv run voxalign align sample.wav "hello world" --backend ctc_trellis
 ```
 
@@ -129,7 +138,7 @@ VOXALIGN_CTC_DEVICE=auto uv run voxalign align sample.wav "hello world" --backen
 
 Language-model routing variables:
 
-- `VOXALIGN_CTC_MODEL_EN` (default: `nvidia/parakeet-ctc-0.6b`)
+- `VOXALIGN_CTC_MODEL_EN` (default: `nvidia/parakeet-ctc-1.1b`)
 - `VOXALIGN_CTC_MODEL_EU` (default: `facebook/mms-1b-all`)
 - `VOXALIGN_CTC_MODEL_KO` (default: `facebook/mms-1b-all`)
 - `VOXALIGN_CTC_MODEL_DEFAULT` (default: `facebook/mms-1b-all`)
@@ -137,9 +146,16 @@ Language-model routing variables:
 
 Recommended baseline IDs:
 
-- English: `nvidia/parakeet-ctc-0.6b` (upgrade path: `nvidia/parakeet-ctc-1.1b`)
+- English: `nvidia/parakeet-ctc-1.1b`
 - European languages: `facebook/mms-1b-all` (language adapter auto-selection by code)
 - Korean: `facebook/mms-1b-all` (Korean adapter auto-selection)
+
+Note: `nvidia/parakeet-tdt-0.6b-v3` is a Transducer/TDT model and needs a dedicated backend
+(planned) for native timestamp extraction; current `ctc_trellis` is CTC-based.
+
+Target phoneme-aligner ID for the phoneme-first path:
+
+- `facebook/wav2vec2-xlsr-53-espeak-cv-ft`
 
 Write result to file:
 
@@ -225,7 +241,7 @@ uv run python eval/benchmark.py \
 
 Benchmark-first public datasets:
 
-- English: Buckeye Corpus (word-level timing references)
+- English: TIMIT + Buckeye Corpus (word/phone timing references)
 - Korean: Seoul Corpus (OpenSLR)
 
 See benchmark details in:

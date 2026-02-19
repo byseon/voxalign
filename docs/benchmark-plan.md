@@ -6,17 +6,21 @@ Define reproducible timestamp-quality and runtime benchmarks required before `v0
 
 ## Required datasets
 
-1. Public known dataset split (license-compatible for benchmarking):
+1. English phone-boundary set:
+   - TIMIT (calibration benchmark for phoneme and word boundary tolerance)
+2. Public release-gate sets:
    - English: Buckeye Corpus
    - Korean: Seoul Corpus (OpenSLR)
-2. Internal in-domain holdout split
+3. Internal in-domain holdout split
 
-Both datasets should provide word-level timestamp references.
+Public sets should provide word-level timestamp references.
+When phone-level references are available (for example TIMIT), include phone-boundary metrics too.
 
 ## Phase-1 benchmark gate datasets
 
 - Buckeye subset for English (curated manifest under `eval/manifests/buckeye.sample.jsonl`)
 - Seoul Corpus subset for Korean (curated manifest under `eval/manifests/seoul_corpus.sample.jsonl`)
+- TIMIT subset for English calibration (curated manifest under `eval/manifests/timit.sample.jsonl`)
 
 ## Required metrics
 

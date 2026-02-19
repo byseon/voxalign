@@ -25,7 +25,7 @@ from voxalign.models import WordAlignment
 _SIM_MODEL_ID = "ctc-trellis-v0"
 _SIM_ALGORITHM = "ctc-viterbi-simulated-emissions"
 _REAL_ALGORITHM = "ctc-viterbi-hf-emissions"
-_DEFAULT_HF_MODEL_EN = "nvidia/parakeet-ctc-0.6b"
+_DEFAULT_HF_MODEL_EN = "nvidia/parakeet-ctc-1.1b"
 _DEFAULT_HF_MODEL_EU = "facebook/mms-1b-all"
 _DEFAULT_HF_MODEL_KO = "facebook/mms-1b-all"
 _DEFAULT_HF_MODEL_GLOBAL = "facebook/mms-1b-all"

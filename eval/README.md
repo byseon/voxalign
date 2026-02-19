@@ -31,6 +31,7 @@ Target benchmark manifests:
 
 - `eval/manifests/buckeye.sample.jsonl` (English)
 - `eval/manifests/seoul_corpus.sample.jsonl` (Korean)
+- `eval/manifests/timit.sample.jsonl` (English calibration)
 
 Artifacts are written under `eval/runs/<timestamp>_<sha>/`:
 
