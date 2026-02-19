@@ -36,6 +36,52 @@ uv run voxalign --help
 
 Python runtime is pinned via `mise` in `.mise.toml` (`3.11.11`).
 
+## Environment setup
+
+### macOS / Linux
+
+```bash
+mise install
+uv sync --dev --frozen
+uv run voxalign --help
+```
+
+### VM (recommended: Ubuntu 22.04+)
+
+Use the same Linux commands as above.
+
+Minimum suggested VM size:
+
+- 2 vCPU
+- 4 GB RAM
+- 10 GB free disk
+
+### Cloud (Codespaces, EC2, GCP VM, Azure VM)
+
+Use the same Linux commands as above.
+
+For remote sessions, run the API server on `0.0.0.0` and control exposure with firewall/security-group rules:
+
+```bash
+uv run voxalign serve --host 0.0.0.0 --port 8000
+```
+
+### Windows
+
+Recommended path: use Google Colab.
+
+Example Colab cells:
+
+```python
+!git clone https://github.com/byseon/voxalign.git
+%cd voxalign
+!pip install -q uv
+!uv sync --dev
+!uv run voxalign --help
+```
+
+If you need local Windows execution, use WSL2 and follow the Linux setup.
+
 ## Local usage
 
 CLI baseline alignment:
@@ -61,6 +107,52 @@ curl -X POST http://127.0.0.1:8000/v1/align \
   -H "content-type: application/json" \
   -d '{"audio_path":"sample.wav","transcript":"hello world","language":"en"}'
 ```
+
+## LLM integration
+
+If you want to use `voxalign` from an LLM workflow, use one of these patterns.
+
+### Pattern A: LLM calls API tool
+
+1. Start the service:
+
+```bash
+uv run voxalign serve --host 127.0.0.1 --port 8000
+```
+
+2. LLM/tool call payload:
+
+```json
+{
+  "audio_path": "sample.wav",
+  "transcript": "hello world",
+  "language": "en",
+  "include_phonemes": true
+}
+```
+
+3. Endpoint:
+
+- `POST /v1/align`
+
+Use `metadata.token_count`, word timings, and phoneme timings in downstream reasoning.
+
+### Pattern B: LLM executes CLI command
+
+```bash
+uv run voxalign align sample.wav "hello world" --language en -o outputs/alignment.json
+```
+
+Then have the LLM read and summarize `outputs/alignment.json`.
+
+### Prompting tip for LLM tools
+
+When asking an LLM agent to align speech, specify:
+
+- audio path
+- transcript text
+- language code (`en`, `en-US`, `auto`, etc.)
+- whether phoneme output is required
 
 ## Development checks
 
