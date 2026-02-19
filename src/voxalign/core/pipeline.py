@@ -7,7 +7,9 @@ The CTC/trellis backend will replace timing generation in Phase 2/3.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Literal
 
+from voxalign.io import read_audio_metadata
 from voxalign.languages import resolve_language_pack
 from voxalign.models import (
     AlignmentMetadata,
@@ -25,7 +27,11 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
     """Produce deterministic, schema-compliant alignments for a transcript."""
     language_pack = resolve_language_pack(request.language)
     normalized = language_pack.normalize(request.transcript)
-    duration_sec = _estimate_duration_sec(len(normalized.tokens))
+    duration_sec, resolved_sample_rate_hz, timing_source = _resolve_timing(
+        audio_path=request.audio_path,
+        token_count=len(normalized.tokens),
+        requested_sample_rate_hz=request.sample_rate_hz,
+    )
     word_alignments = _build_word_alignments(normalized.tokens, duration_sec)
     phoneme_alignments = (
         _build_phoneme_alignments(word_alignments) if request.include_phonemes else []
@@ -35,11 +41,12 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         language=language_pack.code,
         normalizer_id=language_pack.normalizer_id,
         token_count=len(normalized.tokens),
+        timing_source=timing_source,
         model_id=_MODEL_ID,
         algorithm=_ALGORITHM,
         generated_at=datetime.now(UTC),
         duration_sec=duration_sec,
-        sample_rate_hz=request.sample_rate_hz,
+        sample_rate_hz=resolved_sample_rate_hz,
     )
     return AlignResponse(metadata=metadata, words=word_alignments, phonemes=phoneme_alignments)
 
@@ -48,6 +55,20 @@ def _estimate_duration_sec(word_count: int) -> float:
     if word_count <= 0:
         return 0.0
     return round(max(1.0, word_count * 0.32), 3)
+
+
+def _resolve_timing(
+    audio_path: str,
+    token_count: int,
+    requested_sample_rate_hz: int | None,
+) -> tuple[float, int | None, Literal["audio", "heuristic"]]:
+    metadata = read_audio_metadata(audio_path)
+    if metadata is not None and metadata.duration_sec > 0:
+        sample_rate_hz = requested_sample_rate_hz or metadata.sample_rate_hz
+        return metadata.duration_sec, sample_rate_hz, "audio"
+
+    duration_sec = _estimate_duration_sec(token_count)
+    return duration_sec, requested_sample_rate_hz, "heuristic"
 
 
 def _build_word_alignments(words: list[str], duration_sec: float) -> list[WordAlignment]:

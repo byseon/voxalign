@@ -18,6 +18,7 @@ Repo: `github.com/byseon/voxalign`
   - `POST /v1/align` endpoint and CLI JSON output wired to shared pipeline
   - Tooling switched to `uv` workflows and `pre-commit` hooks added
   - Text normalization + language pack contract added (English + generic fallback)
+  - Audio-driven timing primitives added (WAV metadata + heuristic fallback)
 
 ## 1) Scope and assumptions
 

@@ -27,6 +27,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Implement and test initial language pack behavior
 4. Audio-driven alignment primitives
    - Replace placeholder duration logic with audio-derived timing
+   - Status: completed (WAV metadata timing + heuristic fallback)
 5. CTC/trellis model integration
    - Introduce real alignment backend and quality benchmarks
 

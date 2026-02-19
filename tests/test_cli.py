@@ -20,6 +20,7 @@ def test_cli_align_returns_json(capsys) -> None:
     payload = json.loads(captured.out)
     assert payload["metadata"]["language"] == "en"
     assert payload["metadata"]["normalizer_id"] == "english-basic-v1"
+    assert payload["metadata"]["timing_source"] == "heuristic"
     assert payload["words"][0]["word"] == "hello"
     assert payload["phonemes"]
 

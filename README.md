@@ -92,6 +92,12 @@ uv run voxalign align sample.wav "hello world" --language en
 
 English alias inputs are supported (`en-US`, `en-GB`, `en-CA`, `en-AU`).
 
+Timing behavior:
+
+- If `audio_path` points to a readable WAV file, timing uses real audio duration.
+- Otherwise, timing falls back to a deterministic heuristic.
+- Output metadata includes `timing_source` (`audio` or `heuristic`).
+
 Write result to file:
 
 ```bash

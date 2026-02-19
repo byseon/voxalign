@@ -51,6 +51,7 @@ class AlignmentMetadata(BaseModel):
     language: str
     normalizer_id: str
     token_count: int = Field(ge=0)
+    timing_source: Literal["audio", "heuristic"]
     model_id: str
     algorithm: str
     generated_at: datetime
