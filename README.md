@@ -98,6 +98,17 @@ Timing behavior:
 - Otherwise, timing falls back to a deterministic heuristic.
 - Output metadata includes `timing_source` (`audio` or `heuristic`).
 
+Backend behavior:
+
+- `uniform` (default): even token distribution baseline
+- `ctc_trellis`: deterministic simulation of a trellis-style backend integration point
+
+Use backend selection:
+
+```bash
+uv run voxalign align sample.wav "hello world" --backend ctc_trellis
+```
+
 Write result to file:
 
 ```bash
@@ -133,6 +144,7 @@ uv run voxalign serve --host 127.0.0.1 --port 8000
   "audio_path": "sample.wav",
   "transcript": "hello world",
   "language": "en",
+  "backend": "ctc_trellis",
   "include_phonemes": true
 }
 ```

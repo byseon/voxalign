@@ -30,9 +30,28 @@ def test_align_endpoint() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["metadata"]["language"] == "en"
+    assert payload["metadata"]["alignment_backend"] == "uniform"
     assert payload["metadata"]["normalizer_id"] == "english-basic-v1"
     assert payload["metadata"]["token_count"] == 2
     assert payload["metadata"]["timing_source"] == "heuristic"
     assert payload["metadata"]["model_id"] == "baseline-rule-v1"
     assert len(payload["words"]) == 2
     assert len(payload["phonemes"]) >= 2
+
+
+def test_align_endpoint_ctc_backend() -> None:
+    client = TestClient(create_app())
+    response = client.post(
+        "/v1/align",
+        json={
+            "audio_path": "sample.wav",
+            "transcript": "hello world",
+            "language": "en",
+            "backend": "ctc_trellis",
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["metadata"]["alignment_backend"] == "ctc_trellis"
+    assert payload["metadata"]["model_id"] == "ctc-trellis-sim-v1"

@@ -25,6 +25,12 @@ def build_parser() -> argparse.ArgumentParser:
     align.add_argument("transcript", help="Transcript text or transcript file path")
     align.add_argument("--language", default="auto", help="Language code (default: auto)")
     align.add_argument(
+        "--backend",
+        default="uniform",
+        choices=["uniform", "ctc_trellis"],
+        help="Alignment backend (default: uniform)",
+    )
+    align.add_argument(
         "--sample-rate-hz",
         type=int,
         default=None,
@@ -63,6 +69,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             audio_path=args.audio_path,
             transcript=args.transcript,
             language=args.language,
+            backend=args.backend,
             include_phonemes=not args.no_phonemes,
             sample_rate_hz=args.sample_rate_hz,
         )

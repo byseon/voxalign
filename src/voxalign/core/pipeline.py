@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Literal
 
+from voxalign.align import resolve_backend
 from voxalign.io import read_audio_metadata
 from voxalign.languages import resolve_language_pack
 from voxalign.models import (
@@ -19,36 +20,35 @@ from voxalign.models import (
     WordAlignment,
 )
 
-_MODEL_ID = "baseline-rule-v1"
-_ALGORITHM = "uniform-token-distribution"
-
 
 def run_alignment(request: AlignRequest) -> AlignResponse:
     """Produce deterministic, schema-compliant alignments for a transcript."""
     language_pack = resolve_language_pack(request.language)
+    backend = resolve_backend(request.backend)
     normalized = language_pack.normalize(request.transcript)
     duration_sec, resolved_sample_rate_hz, timing_source = _resolve_timing(
         audio_path=request.audio_path,
         token_count=len(normalized.tokens),
         requested_sample_rate_hz=request.sample_rate_hz,
     )
-    word_alignments = _build_word_alignments(normalized.tokens, duration_sec)
+    backend_result = backend.align_words(normalized.tokens, duration_sec)
     phoneme_alignments = (
-        _build_phoneme_alignments(word_alignments) if request.include_phonemes else []
+        _build_phoneme_alignments(backend_result.words) if request.include_phonemes else []
     )
 
     metadata = AlignmentMetadata(
         language=language_pack.code,
+        alignment_backend=backend.name,
         normalizer_id=language_pack.normalizer_id,
         token_count=len(normalized.tokens),
         timing_source=timing_source,
-        model_id=_MODEL_ID,
-        algorithm=_ALGORITHM,
+        model_id=backend_result.model_id,
+        algorithm=backend_result.algorithm,
         generated_at=datetime.now(UTC),
         duration_sec=duration_sec,
         sample_rate_hz=resolved_sample_rate_hz,
     )
-    return AlignResponse(metadata=metadata, words=word_alignments, phonemes=phoneme_alignments)
+    return AlignResponse(metadata=metadata, words=backend_result.words, phonemes=phoneme_alignments)
 
 
 def _estimate_duration_sec(word_count: int) -> float:
@@ -69,29 +69,6 @@ def _resolve_timing(
 
     duration_sec = _estimate_duration_sec(token_count)
     return duration_sec, requested_sample_rate_hz, "heuristic"
-
-
-def _build_word_alignments(words: list[str], duration_sec: float) -> list[WordAlignment]:
-    if not words:
-        return []
-
-    step = duration_sec / len(words)
-    output: list[WordAlignment] = []
-    for index, word in enumerate(words):
-        start = round(step * index, 3)
-        end = round(step * (index + 1), 3)
-        if index == len(words) - 1:
-            end = duration_sec
-        confidence = round(max(0.75, 0.98 - index * 0.01), 3)
-        output.append(
-            WordAlignment(
-                word=word,
-                start_sec=start,
-                end_sec=end,
-                confidence=confidence,
-            )
-        )
-    return output
 
 
 def _build_phoneme_alignments(words: list[WordAlignment]) -> list[PhonemeAlignment]:

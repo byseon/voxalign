@@ -16,6 +16,7 @@ def test_run_alignment_with_words() -> None:
     )
 
     assert response.metadata.language == "en"
+    assert response.metadata.alignment_backend == "uniform"
     assert response.metadata.normalizer_id == "english-basic-v1"
     assert response.metadata.token_count == 3
     assert response.metadata.timing_source == "heuristic"
@@ -36,6 +37,7 @@ def test_run_alignment_without_phonemes() -> None:
     )
 
     assert response.metadata.language == "und"
+    assert response.metadata.alignment_backend == "uniform"
     assert response.metadata.normalizer_id == "generic-unicode-v1"
     assert response.metadata.token_count == 2
     assert response.metadata.timing_source == "heuristic"
@@ -53,6 +55,7 @@ def test_run_alignment_empty_word_list() -> None:
     )
 
     assert response.metadata.duration_sec == 0.0
+    assert response.metadata.alignment_backend == "uniform"
     assert response.metadata.token_count == 0
     assert response.metadata.timing_source == "heuristic"
     assert response.words == []
@@ -73,9 +76,25 @@ def test_run_alignment_uses_wav_duration(tmp_path: Path) -> None:
     )
 
     assert response.metadata.timing_source == "audio"
+    assert response.metadata.alignment_backend == "uniform"
     assert response.metadata.duration_sec == 1.0
     assert response.metadata.sample_rate_hz == 16000
     assert response.words[-1].end_sec == 1.0
+
+
+def test_run_alignment_ctc_backend_selection() -> None:
+    response = run_alignment(
+        AlignRequest(
+            audio_path="audio.wav",
+            transcript="hello world",
+            language="en",
+            backend="ctc_trellis",
+        )
+    )
+
+    assert response.metadata.alignment_backend == "ctc_trellis"
+    assert response.metadata.model_id == "ctc-trellis-sim-v1"
+    assert response.metadata.algorithm == "ctc-trellis-simulated"
 
 
 def _write_wav(path: Path, sample_rate_hz: int, duration_sec: float) -> None:
