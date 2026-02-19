@@ -8,7 +8,7 @@ Multilingual forced aligner for precise word- and phoneme-level timestamps.
 
 ## Status
 
-Phase 2 baseline in progress: uv tooling, alignment schema, and deterministic pipeline scaffold.
+Phase 2 in progress: uv tooling, alignment schema, language-pack normalization, and deterministic pipeline scaffold.
 
 ## Planned capabilities
 
@@ -43,6 +43,8 @@ CLI baseline alignment:
 ```bash
 uv run voxalign align sample.wav "hello world" --language en
 ```
+
+English alias inputs are supported (`en-US`, `en-GB`, `en-CA`, `en-AU`).
 
 Write result to file:
 

@@ -30,6 +30,8 @@ def test_align_endpoint() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["metadata"]["language"] == "en"
+    assert payload["metadata"]["normalizer_id"] == "english-basic-v1"
+    assert payload["metadata"]["token_count"] == 2
     assert payload["metadata"]["model_id"] == "baseline-rule-v1"
     assert len(payload["words"]) == 2
     assert len(payload["phonemes"]) >= 2

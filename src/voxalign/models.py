@@ -49,6 +49,8 @@ class AlignmentMetadata(BaseModel):
     """Metadata describing how an alignment was produced."""
 
     language: str
+    normalizer_id: str
+    token_count: int = Field(ge=0)
     model_id: str
     algorithm: str
     generated_at: datetime

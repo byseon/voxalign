@@ -6,13 +6,15 @@ def test_run_alignment_with_words() -> None:
     response = run_alignment(
         AlignRequest(
             audio_path="audio.wav",
-            transcript="hello multilingual world",
+            transcript="Hello, multilingual world!!!",
             language="en",
             include_phonemes=True,
         )
     )
 
     assert response.metadata.language == "en"
+    assert response.metadata.normalizer_id == "english-basic-v1"
+    assert response.metadata.token_count == 3
     assert response.metadata.duration_sec > 0.0
     assert len(response.words) == 3
     assert response.words[0].word == "hello"
@@ -30,6 +32,8 @@ def test_run_alignment_without_phonemes() -> None:
     )
 
     assert response.metadata.language == "und"
+    assert response.metadata.normalizer_id == "generic-unicode-v1"
+    assert response.metadata.token_count == 2
     assert len(response.words) == 2
     assert response.phonemes == []
 
@@ -44,5 +48,6 @@ def test_run_alignment_empty_word_list() -> None:
     )
 
     assert response.metadata.duration_sec == 0.0
+    assert response.metadata.token_count == 0
     assert response.words == []
     assert response.phonemes == []

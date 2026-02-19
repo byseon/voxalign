@@ -22,6 +22,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
 2. Text normalization and language plugin contract
    - Introduce pluggable language normalization interface
    - Wire pipeline to normalized/tokenized transcript source
+   - Status: completed (baseline English + generic fallback packs)
 3. First language module
    - Implement and test initial language pack behavior
 4. Audio-driven alignment primitives

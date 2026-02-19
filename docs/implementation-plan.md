@@ -17,6 +17,7 @@ Repo: `github.com/byseon/voxalign`
   - Deterministic baseline alignment pipeline implemented for contract testing
   - `POST /v1/align` endpoint and CLI JSON output wired to shared pipeline
   - Tooling switched to `uv` workflows and `pre-commit` hooks added
+  - Text normalization + language pack contract added (English + generic fallback)
 
 ## 1) Scope and assumptions
 

@@ -6,9 +6,9 @@ The CTC/trellis backend will replace timing generation in Phase 2/3.
 
 from __future__ import annotations
 
-import re
 from datetime import UTC, datetime
 
+from voxalign.languages import resolve_language_pack
 from voxalign.models import (
     AlignmentMetadata,
     AlignRequest,
@@ -17,23 +17,24 @@ from voxalign.models import (
     WordAlignment,
 )
 
-_WORD_PATTERN = re.compile(r"[0-9A-Za-z]+(?:['-][0-9A-Za-z]+)?")
 _MODEL_ID = "baseline-rule-v1"
 _ALGORITHM = "uniform-token-distribution"
 
 
 def run_alignment(request: AlignRequest) -> AlignResponse:
     """Produce deterministic, schema-compliant alignments for a transcript."""
-    words = _tokenize_words(request.transcript)
-    duration_sec = _estimate_duration_sec(len(words))
-    word_alignments = _build_word_alignments(words, duration_sec)
+    language_pack = resolve_language_pack(request.language)
+    normalized = language_pack.normalize(request.transcript)
+    duration_sec = _estimate_duration_sec(len(normalized.tokens))
+    word_alignments = _build_word_alignments(normalized.tokens, duration_sec)
     phoneme_alignments = (
         _build_phoneme_alignments(word_alignments) if request.include_phonemes else []
     )
 
-    resolved_language = "und" if request.language == "auto" else request.language
     metadata = AlignmentMetadata(
-        language=resolved_language,
+        language=language_pack.code,
+        normalizer_id=language_pack.normalizer_id,
+        token_count=len(normalized.tokens),
         model_id=_MODEL_ID,
         algorithm=_ALGORITHM,
         generated_at=datetime.now(UTC),
@@ -41,10 +42,6 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         sample_rate_hz=request.sample_rate_hz,
     )
     return AlignResponse(metadata=metadata, words=word_alignments, phonemes=phoneme_alignments)
-
-
-def _tokenize_words(transcript: str) -> list[str]:
-    return _WORD_PATTERN.findall(transcript)
 
 
 def _estimate_duration_sec(word_count: int) -> float:
