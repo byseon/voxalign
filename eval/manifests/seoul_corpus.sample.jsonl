@@ -1,0 +1,1 @@
+{"id":"seoul-sample-001","audio_path":"data/benchmarks/seoul_corpus/audio/f001_001.wav","transcript":"안녕하세요 반갑습니다","language":"ko","reference_words":[{"word":"안녕하세요","start_sec":0.08,"end_sec":0.59},{"word":"반갑습니다","start_sec":0.60,"end_sec":1.20}]}

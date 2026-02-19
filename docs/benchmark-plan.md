@@ -6,10 +6,17 @@ Define reproducible timestamp-quality and runtime benchmarks required before `v0
 
 ## Required datasets
 
-1. Public known dataset split (license-compatible for benchmarking)
+1. Public known dataset split (license-compatible for benchmarking):
+   - English: Buckeye Corpus
+   - Korean: Seoul Corpus (OpenSLR)
 2. Internal in-domain holdout split
 
 Both datasets should provide word-level timestamp references.
+
+## Phase-1 benchmark gate datasets
+
+- Buckeye subset for English (curated manifest under `eval/manifests/buckeye.sample.jsonl`)
+- Seoul Corpus subset for Korean (curated manifest under `eval/manifests/seoul_corpus.sample.jsonl`)
 
 ## Required metrics
 

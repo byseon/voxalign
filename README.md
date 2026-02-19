@@ -117,7 +117,7 @@ Enable Hugging Face emissions (optional):
 ```bash
 uv sync --group asr
 VOXALIGN_CTC_USE_HF=1 \
-VOXALIGN_CTC_MODEL_ID=facebook/wav2vec2-base-960h \
+VOXALIGN_CTC_MODEL_ID=nvidia/parakeet-ctc-0.6b \
 uv run voxalign align sample.wav "hello world" --backend ctc_trellis
 ```
 
@@ -129,11 +129,17 @@ VOXALIGN_CTC_DEVICE=auto uv run voxalign align sample.wav "hello world" --backen
 
 Language-model routing variables:
 
-- `VOXALIGN_CTC_MODEL_EN` (default: `facebook/wav2vec2-base-960h`)
+- `VOXALIGN_CTC_MODEL_EN` (default: `nvidia/parakeet-ctc-0.6b`)
 - `VOXALIGN_CTC_MODEL_EU` (default: `facebook/mms-1b-all`)
 - `VOXALIGN_CTC_MODEL_KO` (default: `facebook/mms-1b-all`)
 - `VOXALIGN_CTC_MODEL_DEFAULT` (default: `facebook/mms-1b-all`)
 - `VOXALIGN_CTC_MODEL_ID` (overrides all language routes)
+
+Recommended baseline IDs:
+
+- English: `nvidia/parakeet-ctc-0.6b` (upgrade path: `nvidia/parakeet-ctc-1.1b`)
+- European languages: `facebook/mms-1b-all` (language adapter auto-selection by code)
+- Korean: `facebook/mms-1b-all` (Korean adapter auto-selection)
 
 Write result to file:
 
@@ -216,6 +222,11 @@ uv run python eval/benchmark.py \
   --manifest eval/manifests/sample.jsonl \
   --backend ctc_trellis
 ```
+
+Benchmark-first public datasets:
+
+- English: Buckeye Corpus (word-level timing references)
+- Korean: Seoul Corpus (OpenSLR)
 
 See benchmark details in:
 

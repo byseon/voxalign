@@ -27,6 +27,11 @@ uv run python eval/benchmark.py \
   --backend ctc_trellis
 ```
 
+Target benchmark manifests:
+
+- `eval/manifests/buckeye.sample.jsonl` (English)
+- `eval/manifests/seoul_corpus.sample.jsonl` (Korean)
+
 Artifacts are written under `eval/runs/<timestamp>_<sha>/`:
 
 - `metrics.json`

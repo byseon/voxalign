@@ -22,6 +22,7 @@ Repo: `github.com/byseon/voxalign`
   - CTC/trellis decoder core added (pluggable backends + selectable `ctc_trellis` + Viterbi pathing)
   - Optional HF CTC emissions path added (CPU/GPU auto-select with simulated fallback)
   - Language-routed CTC model selection added (English, European, Korean buckets)
+  - Recommended model routing locked: Parakeet CTC for English, MMS for EU/Korean
   - Benchmark harness + release-gate benchmark plan added (`eval/benchmark.py`, `docs/benchmark-plan.md`)
 
 ## 1) Scope and assumptions

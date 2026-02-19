@@ -25,7 +25,7 @@ from voxalign.models import WordAlignment
 _SIM_MODEL_ID = "ctc-trellis-v0"
 _SIM_ALGORITHM = "ctc-viterbi-simulated-emissions"
 _REAL_ALGORITHM = "ctc-viterbi-hf-emissions"
-_DEFAULT_HF_MODEL_EN = "facebook/wav2vec2-base-960h"
+_DEFAULT_HF_MODEL_EN = "nvidia/parakeet-ctc-0.6b"
 _DEFAULT_HF_MODEL_EU = "facebook/mms-1b-all"
 _DEFAULT_HF_MODEL_KO = "facebook/mms-1b-all"
 _DEFAULT_HF_MODEL_GLOBAL = "facebook/mms-1b-all"
@@ -64,6 +64,42 @@ _EUROPEAN_CODES = {
     "sq",
     "sr",
     "sv",
+}
+_MMS_LANGUAGE_CODE_MAP = {
+    "bg": "bul",
+    "ca": "cat",
+    "cs": "ces",
+    "cy": "cym",
+    "da": "dan",
+    "de": "deu",
+    "el": "ell",
+    "en": "eng",
+    "es": "spa",
+    "et": "est",
+    "eu": "eus",
+    "fi": "fin",
+    "fr": "fra",
+    "ga": "gle",
+    "gl": "glg",
+    "hr": "hrv",
+    "hu": "hun",
+    "is": "isl",
+    "it": "ita",
+    "ko": "kor",
+    "lt": "lit",
+    "lv": "lav",
+    "mk": "mkd",
+    "mt": "mlt",
+    "nl": "nld",
+    "no": "nor",
+    "pl": "pol",
+    "pt": "por",
+    "ro": "ron",
+    "sk": "slk",
+    "sl": "slv",
+    "sq": "sqi",
+    "sr": "srp",
+    "sv": "swe",
 }
 
 
@@ -339,30 +375,47 @@ def _try_real_emissions(
 
 def _load_hf_bundle(language_code: str | None) -> _HfBundle | None:
     model_id = _resolve_model_id(language_code)
+    adapter_language = _resolve_adapter_language(model_id=model_id, language_code=language_code)
     device_pref = os.getenv("VOXALIGN_CTC_DEVICE", "auto")
-    cache_key = f"{model_id}@{device_pref}"
+    cache_key = f"{model_id}@{adapter_language or 'none'}@{device_pref}"
     cached = _HF_CACHE.get(cache_key)
     if cached is not None:
         return cached
 
     try:
         import torch
-        from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor  # type: ignore[import-not-found]
+        from transformers import AutoModelForCTC, AutoProcessor  # type: ignore[import-not-found]
     except ModuleNotFoundError:
         return None
 
     try:
-        processor = Wav2Vec2Processor.from_pretrained(model_id)
-        model = Wav2Vec2ForCTC.from_pretrained(model_id)
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModelForCTC.from_pretrained(model_id)
     except Exception:
         return None
+
+    tokenizer = getattr(processor, "tokenizer", None)
+    if tokenizer is None:
+        return None
+
+    if adapter_language is not None:
+        try:
+            set_target_lang = getattr(tokenizer, "set_target_lang", None)
+            if callable(set_target_lang):
+                set_target_lang(adapter_language)
+            load_adapter = getattr(model, "load_adapter", None)
+            if callable(load_adapter):
+                load_adapter(adapter_language)
+        except Exception:
+            return None
 
     device = _resolve_torch_device(torch=torch, preference=device_pref)
     model = model.to(device)
     model.eval()
 
-    target_hz = int(getattr(processor.feature_extractor, "sampling_rate", 16000))
-    blank_id = getattr(processor.tokenizer, "pad_token_id", 0)
+    feature_extractor = getattr(processor, "feature_extractor", None)
+    target_hz = int(getattr(feature_extractor, "sampling_rate", 16000))
+    blank_id = getattr(tokenizer, "pad_token_id", 0)
     if blank_id is None:
         blank_id = 0
 
@@ -447,9 +500,9 @@ def _resolve_model_id(language_code: str | None) -> str:
 
 
 def _language_bucket(language_code: str | None) -> str:
-    if language_code is None:
+    code = _normalize_language_code(language_code)
+    if code is None:
         return "global"
-    code = language_code.casefold()
     if code == "en":
         return "en"
     if code == "ko":
@@ -457,6 +510,24 @@ def _language_bucket(language_code: str | None) -> str:
     if code in _EUROPEAN_CODES:
         return "eu"
     return "global"
+
+
+def _resolve_adapter_language(model_id: str, language_code: str | None) -> str | None:
+    if not model_id.casefold().startswith("facebook/mms-"):
+        return None
+    normalized = _normalize_language_code(language_code)
+    if normalized is None:
+        return None
+    return _MMS_LANGUAGE_CODE_MAP.get(normalized)
+
+
+def _normalize_language_code(language_code: str | None) -> str | None:
+    if language_code is None:
+        return None
+    cleaned = language_code.strip().casefold().replace("_", "-")
+    if not cleaned:
+        return None
+    return cleaned.split("-")[0]
 
 
 def _env_truthy(name: str, default: bool) -> bool:

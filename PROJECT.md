@@ -14,6 +14,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
 - Phase 2 in progress: language routing, trellis decoder core, and optional HF emissions path implemented.
 - Tooling standardized on `mise` + `uv` + `pre-commit`.
 - Benchmark harness and release-gate plan added (`eval/`, `docs/benchmark-plan.md`).
+- Benchmark gate datasets selected for initial run: Buckeye (EN) + Seoul Corpus (KO).
 
 ## Milestones
 
