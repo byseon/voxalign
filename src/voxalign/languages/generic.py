@@ -22,11 +22,12 @@ _CHARMAP = str.maketrans(
 
 
 class GenericLanguagePack(BaseLanguagePack):
-    """Fallback normalization for unknown or auto-detected languages."""
+    """Generic normalization pack reusable across languages."""
 
-    code = "und"
-    name = "Undetermined"
-    normalizer_id = "generic-unicode-v1"
+    def __init__(self, *, code: str, name: str) -> None:
+        self.code = code
+        self.name = name
+        self.normalizer_id = "generic-unicode-v1"
 
     def normalize(self, transcript: str) -> NormalizedTranscript:
         normalized = transcript.translate(_CHARMAP).casefold()
@@ -36,4 +37,4 @@ class GenericLanguagePack(BaseLanguagePack):
         return NormalizedTranscript(original=transcript, normalized=normalized, tokens=tokens)
 
 
-GENERIC_PACK = GenericLanguagePack()
+GENERIC_PACK = GenericLanguagePack(code="und", name="Undetermined")

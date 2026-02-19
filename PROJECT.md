@@ -11,8 +11,9 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
 ## Current State
 
 - Phase 1 completed: repository scaffold, CLI/API skeleton, CI baseline.
-- Phase 2 in progress: canonical schema and deterministic alignment pipeline implemented.
+- Phase 2 in progress: language routing, trellis decoder core, and optional HF emissions path implemented.
 - Tooling standardized on `mise` + `uv` + `pre-commit`.
+- Benchmark harness and release-gate plan added (`eval/`, `docs/benchmark-plan.md`).
 
 ## Milestones
 
@@ -30,7 +31,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Status: completed (WAV metadata timing + heuristic fallback)
 5. CTC/trellis model integration
    - Introduce real alignment backend and quality benchmarks
-   - Status: in progress (trellis/Viterbi decoder + optional HF emissions path added)
+   - Status: in progress (trellis/Viterbi decoder + optional HF emissions + language model routing added)
 
 ## Primary Paths
 

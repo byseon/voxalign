@@ -19,6 +19,15 @@ def test_generic_fallback_unknown_language() -> None:
     pack = resolve_language_pack("ko")
     result = pack.normalize("안녕  세상!!! hello")
 
-    assert pack.code == "und"
+    assert pack.code == "ko"
     assert pack.normalizer_id == "generic-unicode-v1"
     assert result.tokens == ["안녕", "세상", "hello"]
+
+
+def test_european_language_resolution() -> None:
+    pack = resolve_language_pack("fr")
+    result = pack.normalize("Bonjour le monde!")
+
+    assert pack.code == "fr"
+    assert pack.normalizer_id == "generic-unicode-v1"
+    assert result.tokens == ["bonjour", "le", "monde"]

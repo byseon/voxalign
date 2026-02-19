@@ -21,6 +21,8 @@ Repo: `github.com/byseon/voxalign`
   - Audio-driven timing primitives added (WAV metadata + heuristic fallback)
   - CTC/trellis decoder core added (pluggable backends + selectable `ctc_trellis` + Viterbi pathing)
   - Optional HF CTC emissions path added (CPU/GPU auto-select with simulated fallback)
+  - Language-routed CTC model selection added (English, European, Korean buckets)
+  - Benchmark harness + release-gate benchmark plan added (`eval/benchmark.py`, `docs/benchmark-plan.md`)
 
 ## 1) Scope and assumptions
 

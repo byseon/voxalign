@@ -23,6 +23,7 @@ Phase 2 in progress: uv tooling, schema + normalization, audio timing, and trell
 - Operator guide: `AGENT.md`
 - Project charter and milestone map: `PROJECT.md`
 - Implementation plan: `docs/implementation-plan.md`
+- Benchmark release-gate plan: `docs/benchmark-plan.md`
 
 ## Quick start
 
@@ -126,6 +127,14 @@ Device selection (`cpu` / `cuda` / `mps` / `auto`):
 VOXALIGN_CTC_DEVICE=auto uv run voxalign align sample.wav "hello world" --backend ctc_trellis
 ```
 
+Language-model routing variables:
+
+- `VOXALIGN_CTC_MODEL_EN` (default: `facebook/wav2vec2-base-960h`)
+- `VOXALIGN_CTC_MODEL_EU` (default: `facebook/mms-1b-all`)
+- `VOXALIGN_CTC_MODEL_KO` (default: `facebook/mms-1b-all`)
+- `VOXALIGN_CTC_MODEL_DEFAULT` (default: `facebook/mms-1b-all`)
+- `VOXALIGN_CTC_MODEL_ID` (overrides all language routes)
+
 Write result to file:
 
 ```bash
@@ -197,6 +206,21 @@ uv run ruff format --check src tests
 uv run mypy src
 uv run pytest -q
 ```
+
+## Benchmarking
+
+Run benchmark harness:
+
+```bash
+uv run python eval/benchmark.py \
+  --manifest eval/manifests/sample.jsonl \
+  --backend ctc_trellis
+```
+
+See benchmark details in:
+
+- `eval/README.md`
+- `docs/benchmark-plan.md`
 
 ## Pre-commit hooks
 

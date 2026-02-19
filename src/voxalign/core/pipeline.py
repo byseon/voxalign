@@ -34,6 +34,7 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
     backend_result = backend.align_words(
         normalized.tokens,
         duration_sec,
+        language_code=language_pack.code,
         audio_path=request.audio_path,
         sample_rate_hz=resolved_sample_rate_hz,
     )

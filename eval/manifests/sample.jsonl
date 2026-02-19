@@ -1,0 +1,1 @@
+{"id":"sample-001","audio_path":"tests/fixtures/sample_en.wav","transcript":"hello world","language":"en","reference_words":[{"word":"hello","start_sec":0.0,"end_sec":0.5},{"word":"world","start_sec":0.5,"end_sec":1.0}]}

@@ -19,6 +19,7 @@ class UniformBackend:
         tokens: list[str],
         duration_sec: float,
         *,
+        language_code: str | None = None,
         audio_path: str | None = None,
         sample_rate_hz: int | None = None,
     ) -> BackendResult:

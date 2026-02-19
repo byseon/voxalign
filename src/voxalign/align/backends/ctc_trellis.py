@@ -25,9 +25,46 @@ from voxalign.models import WordAlignment
 _SIM_MODEL_ID = "ctc-trellis-v0"
 _SIM_ALGORITHM = "ctc-viterbi-simulated-emissions"
 _REAL_ALGORITHM = "ctc-viterbi-hf-emissions"
-_DEFAULT_HF_MODEL = "facebook/wav2vec2-base-960h"
+_DEFAULT_HF_MODEL_EN = "facebook/wav2vec2-base-960h"
+_DEFAULT_HF_MODEL_EU = "facebook/mms-1b-all"
+_DEFAULT_HF_MODEL_KO = "facebook/mms-1b-all"
+_DEFAULT_HF_MODEL_GLOBAL = "facebook/mms-1b-all"
 _FRAME_HZ = 100
 _HF_CACHE: dict[str, _HfBundle] = {}
+_EUROPEAN_CODES = {
+    "bg",
+    "ca",
+    "cs",
+    "cy",
+    "da",
+    "de",
+    "el",
+    "es",
+    "et",
+    "eu",
+    "fi",
+    "fr",
+    "ga",
+    "gl",
+    "hr",
+    "hu",
+    "is",
+    "it",
+    "lt",
+    "lv",
+    "mk",
+    "mt",
+    "nl",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "sk",
+    "sl",
+    "sq",
+    "sr",
+    "sv",
+}
 
 
 @dataclass(frozen=True)
@@ -60,6 +97,7 @@ class CtcTrellisBackend:
         tokens: list[str],
         duration_sec: float,
         *,
+        language_code: str | None = None,
         audio_path: str | None = None,
         sample_rate_hz: int | None = None,
     ) -> BackendResult:
@@ -68,6 +106,7 @@ class CtcTrellisBackend:
 
         real_pack = _try_real_emissions(
             tokens=tokens,
+            language_code=language_code,
             audio_path=audio_path,
             sample_rate_hz=sample_rate_hz,
         )
@@ -236,12 +275,13 @@ def _log_softmax(logits: list[float]) -> list[float]:
 
 def _try_real_emissions(
     tokens: list[str],
+    language_code: str | None,
     audio_path: str | None,
     sample_rate_hz: int | None,
 ) -> _EmissionPack | None:
     if audio_path is None:
         return None
-    if not _env_truthy("VOXALIGN_CTC_USE_HF", default=True):
+    if not _env_truthy("VOXALIGN_CTC_USE_HF", default=False):
         return None
 
     wav_payload = read_wav_audio(audio_path)
@@ -251,7 +291,7 @@ def _try_real_emissions(
     if sample_rate_hz is None:
         sample_rate_hz = detected_sample_rate_hz
 
-    bundle = _load_hf_bundle()
+    bundle = _load_hf_bundle(language_code=language_code)
     if bundle is None:
         return None
 
@@ -297,8 +337,8 @@ def _try_real_emissions(
     )
 
 
-def _load_hf_bundle() -> _HfBundle | None:
-    model_id = os.getenv("VOXALIGN_CTC_MODEL_ID", _DEFAULT_HF_MODEL)
+def _load_hf_bundle(language_code: str | None) -> _HfBundle | None:
+    model_id = _resolve_model_id(language_code)
     device_pref = os.getenv("VOXALIGN_CTC_DEVICE", "auto")
     cache_key = f"{model_id}@{device_pref}"
     cached = _HF_CACHE.get(cache_key)
@@ -389,6 +429,34 @@ def _encode_words_for_ctc(
     if not all_token_ids:
         return None
     return all_token_ids, word_spans
+
+
+def _resolve_model_id(language_code: str | None) -> str:
+    explicit = os.getenv("VOXALIGN_CTC_MODEL_ID")
+    if explicit:
+        return explicit
+
+    bucket = _language_bucket(language_code)
+    if bucket == "en":
+        return os.getenv("VOXALIGN_CTC_MODEL_EN", _DEFAULT_HF_MODEL_EN)
+    if bucket == "eu":
+        return os.getenv("VOXALIGN_CTC_MODEL_EU", _DEFAULT_HF_MODEL_EU)
+    if bucket == "ko":
+        return os.getenv("VOXALIGN_CTC_MODEL_KO", _DEFAULT_HF_MODEL_KO)
+    return os.getenv("VOXALIGN_CTC_MODEL_DEFAULT", _DEFAULT_HF_MODEL_GLOBAL)
+
+
+def _language_bucket(language_code: str | None) -> str:
+    if language_code is None:
+        return "global"
+    code = language_code.casefold()
+    if code == "en":
+        return "en"
+    if code == "ko":
+        return "ko"
+    if code in _EUROPEAN_CODES:
+        return "eu"
+    return "global"
 
 
 def _env_truthy(name: str, default: bool) -> bool:

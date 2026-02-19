@@ -17,3 +17,6 @@ venv/
 
 # Editor/system noise
 .DS_Store
+
+# Benchmark artifacts
+eval/runs/
