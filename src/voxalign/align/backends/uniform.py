@@ -14,7 +14,14 @@ class UniformBackend:
 
     name: BackendName = "uniform"
 
-    def align_words(self, tokens: list[str], duration_sec: float) -> BackendResult:
+    def align_words(
+        self,
+        tokens: list[str],
+        duration_sec: float,
+        *,
+        audio_path: str | None = None,
+        sample_rate_hz: int | None = None,
+    ) -> BackendResult:
         if not tokens:
             return BackendResult(words=[], model_id=_MODEL_ID, algorithm=_ALGORITHM)
 

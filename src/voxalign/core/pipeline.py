@@ -31,7 +31,12 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         token_count=len(normalized.tokens),
         requested_sample_rate_hz=request.sample_rate_hz,
     )
-    backend_result = backend.align_words(normalized.tokens, duration_sec)
+    backend_result = backend.align_words(
+        normalized.tokens,
+        duration_sec,
+        audio_path=request.audio_path,
+        sample_rate_hz=resolved_sample_rate_hz,
+    )
     phoneme_alignments = (
         _build_phoneme_alignments(backend_result.words) if request.include_phonemes else []
     )

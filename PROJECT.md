@@ -30,7 +30,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Status: completed (WAV metadata timing + heuristic fallback)
 5. CTC/trellis model integration
    - Introduce real alignment backend and quality benchmarks
-   - Status: in progress (trellis/Viterbi decoder added; acoustic emissions pending)
+   - Status: in progress (trellis/Viterbi decoder + optional HF emissions path added)
 
 ## Primary Paths
 

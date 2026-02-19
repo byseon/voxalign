@@ -20,6 +20,7 @@ Repo: `github.com/byseon/voxalign`
   - Text normalization + language pack contract added (English + generic fallback)
   - Audio-driven timing primitives added (WAV metadata + heuristic fallback)
   - CTC/trellis decoder core added (pluggable backends + selectable `ctc_trellis` + Viterbi pathing)
+  - Optional HF CTC emissions path added (CPU/GPU auto-select with simulated fallback)
 
 ## 1) Scope and assumptions
 

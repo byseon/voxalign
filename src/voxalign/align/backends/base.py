@@ -24,5 +24,12 @@ class AlignmentBackend(Protocol):
 
     name: BackendName
 
-    def align_words(self, tokens: list[str], duration_sec: float) -> BackendResult:
+    def align_words(
+        self,
+        tokens: list[str],
+        duration_sec: float,
+        *,
+        audio_path: str | None = None,
+        sample_rate_hz: int | None = None,
+    ) -> BackendResult:
         """Align normalized tokens to time boundaries."""

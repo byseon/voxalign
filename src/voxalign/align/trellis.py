@@ -9,16 +9,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-def build_state_symbols(token_count: int) -> list[int]:
+def build_state_symbols(token_symbols: list[int], blank_id: int = 0) -> list[int]:
     """Build expanded CTC state sequence symbols.
 
-    States alternate between blank (0) and token ids (1..N):
-    [0, 1, 0, 2, 0, ..., N, 0]
+    States alternate between blank and explicit token symbols:
+    [blank, token_0, blank, token_1, ..., token_n, blank]
     """
-    states: list[int] = [0]
-    for token_id in range(1, token_count + 1):
-        states.append(token_id)
-        states.append(0)
+    states: list[int] = [blank_id]
+    for token_symbol in token_symbols:
+        states.append(token_symbol)
+        states.append(blank_id)
     return states
 
 
@@ -92,17 +92,16 @@ class TokenFrameSpan:
 
 def token_spans_from_state_path(
     state_path: list[int],
-    state_symbols: list[int],
     token_count: int,
 ) -> list[TokenFrameSpan]:
-    """Extract frame spans for each token from the decoded state path."""
+    """Extract frame spans for each token-position from decoded state path."""
     spans: list[TokenFrameSpan] = []
     for token_index in range(token_count):
-        token_symbol = token_index + 1
+        token_state_index = 1 + token_index * 2
         token_frames = [
             frame_idx
             for frame_idx, state_idx in enumerate(state_path)
-            if state_symbols[state_idx] == token_symbol
+            if state_idx == token_state_index
         ]
         if token_frames:
             start_frame = token_frames[0]

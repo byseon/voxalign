@@ -8,7 +8,7 @@ Multilingual forced aligner for precise word- and phoneme-level timestamps.
 
 ## Status
 
-Phase 2 in progress: uv tooling, alignment schema, language-pack normalization, and deterministic pipeline scaffold.
+Phase 2 in progress: uv tooling, schema + normalization, audio timing, and trellis decoder core.
 
 ## Planned capabilities
 
@@ -101,12 +101,29 @@ Timing behavior:
 Backend behavior:
 
 - `uniform` (default): even token distribution baseline
-- `ctc_trellis`: trellis/Viterbi decoder running over deterministic simulated emissions
+- `ctc_trellis`: trellis/Viterbi decoder
+  - uses Hugging Face CTC emissions when available
+  - falls back to deterministic simulated emissions otherwise
 
 Use backend selection:
 
 ```bash
 uv run voxalign align sample.wav "hello world" --backend ctc_trellis
+```
+
+Enable Hugging Face emissions (optional):
+
+```bash
+uv sync --group asr
+VOXALIGN_CTC_USE_HF=1 \
+VOXALIGN_CTC_MODEL_ID=facebook/wav2vec2-base-960h \
+uv run voxalign align sample.wav "hello world" --backend ctc_trellis
+```
+
+Device selection (`cpu` / `cuda` / `mps` / `auto`):
+
+```bash
+VOXALIGN_CTC_DEVICE=auto uv run voxalign align sample.wav "hello world" --backend ctc_trellis
 ```
 
 Write result to file:
