@@ -4,6 +4,15 @@ Date: 2026-02-19
 Owner: byseon
 Repo: `github.com/byseon/voxalign`
 
+## Progress update (2026-02-19)
+
+- Phase 1 scaffold started and committed:
+  - Python package layout and build metadata (`pyproject.toml`)
+  - Config profiles (`configs/dev.toml`, `configs/prod.toml`)
+  - CLI entrypoint (`voxalign`) and placeholder `align` command
+  - FastAPI app with `/health` endpoint
+  - Test suite skeleton and CI workflow
+
 ## 1) Scope and assumptions
 
 This plan targets a production-ready multilingual forced aligner with:

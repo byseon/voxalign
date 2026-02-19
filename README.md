@@ -8,7 +8,7 @@ Multilingual forced aligner for precise word- and phoneme-level timestamps.
 
 ## Status
 
-Early development (architecture and implementation planning in progress).
+Phase 1 scaffold in progress: package, CLI, API health endpoint, and CI baseline.
 
 ## Planned capabilities
 
@@ -22,6 +22,38 @@ Early development (architecture and implementation planning in progress).
 
 - Implementation plan: `docs/implementation-plan.md`
 
+## Quick start
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+voxalign --help
+```
+
+## Local usage
+
+CLI placeholder:
+
+```bash
+voxalign align sample.wav "hello world" --language en
+```
+
+Run API locally:
+
+```bash
+uvicorn voxalign.api:app --reload
+curl http://127.0.0.1:8000/health
+```
+
+## Development checks
+
+```bash
+ruff check src tests
+mypy src
+pytest
+```
+
 ## Repository
 
-- GitHub: `https://github.com/byseon/voxalign`
+- GitHub: [github.com/byseon/voxalign](https://github.com/byseon/voxalign)

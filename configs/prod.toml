@@ -1,0 +1,4 @@
+log_level = "INFO"
+api_host = "0.0.0.0"
+api_port = 8080
+workers = 2
