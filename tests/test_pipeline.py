@@ -93,8 +93,8 @@ def test_run_alignment_ctc_backend_selection() -> None:
     )
 
     assert response.metadata.alignment_backend == "ctc_trellis"
-    assert response.metadata.model_id == "ctc-trellis-sim-v1"
-    assert response.metadata.algorithm == "ctc-trellis-simulated"
+    assert response.metadata.model_id == "ctc-trellis-v0"
+    assert response.metadata.algorithm == "ctc-viterbi-simulated-emissions"
 
 
 def _write_wav(path: Path, sample_rate_hz: int, duration_sec: float) -> None:

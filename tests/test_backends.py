@@ -17,7 +17,7 @@ def test_resolve_ctc_backend() -> None:
     result = backend.align_words(tokens=["hello", "world"], duration_sec=1.2)
 
     assert backend.name == "ctc_trellis"
-    assert result.model_id == "ctc-trellis-sim-v1"
-    assert result.algorithm == "ctc-trellis-simulated"
+    assert result.model_id == "ctc-trellis-v0"
+    assert result.algorithm == "ctc-viterbi-simulated-emissions"
     assert len(result.words) == 2
     assert result.words[-1].end_sec == 1.2

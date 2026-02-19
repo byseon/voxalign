@@ -54,4 +54,4 @@ def test_align_endpoint_ctc_backend() -> None:
     assert response.status_code == 200
     payload = response.json()
     assert payload["metadata"]["alignment_backend"] == "ctc_trellis"
-    assert payload["metadata"]["model_id"] == "ctc-trellis-sim-v1"
+    assert payload["metadata"]["model_id"] == "ctc-trellis-v0"

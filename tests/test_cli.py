@@ -58,4 +58,4 @@ def test_cli_align_ctc_backend(capsys) -> None:
     assert exit_code == 0
     payload = json.loads(captured.out)
     assert payload["metadata"]["alignment_backend"] == "ctc_trellis"
-    assert payload["metadata"]["model_id"] == "ctc-trellis-sim-v1"
+    assert payload["metadata"]["model_id"] == "ctc-trellis-v0"

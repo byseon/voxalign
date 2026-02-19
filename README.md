@@ -101,7 +101,7 @@ Timing behavior:
 Backend behavior:
 
 - `uniform` (default): even token distribution baseline
-- `ctc_trellis`: deterministic simulation of a trellis-style backend integration point
+- `ctc_trellis`: trellis/Viterbi decoder running over deterministic simulated emissions
 
 Use backend selection:
 

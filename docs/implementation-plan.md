@@ -19,7 +19,7 @@ Repo: `github.com/byseon/voxalign`
   - Tooling switched to `uv` workflows and `pre-commit` hooks added
   - Text normalization + language pack contract added (English + generic fallback)
   - Audio-driven timing primitives added (WAV metadata + heuristic fallback)
-  - CTC/trellis backend integration point added (pluggable backends + selectable `ctc_trellis`)
+  - CTC/trellis decoder core added (pluggable backends + selectable `ctc_trellis` + Viterbi pathing)
 
 ## 1) Scope and assumptions
 
