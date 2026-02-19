@@ -25,9 +25,14 @@ Phase 2 baseline in progress: uv tooling, alignment schema, and deterministic pi
 ## Quick start
 
 ```bash
+mise install
 uv sync --dev
 uv run voxalign --help
 ```
+
+## Runtime management
+
+Python runtime is pinned via `mise` in `.mise.toml` (`3.11.11`).
 
 ## Local usage
 
