@@ -23,6 +23,11 @@ from voxalign.models import (
     WordAlignment,
 )
 
+_CRISPER_LICENSE_WARNING = (
+    "CrisperWhisper uses CC BY-NC 4.0 (non-commercial). "
+    "Do not use this ASR backend for commercial workloads."
+)
+
 
 def run_alignment(request: AlignRequest) -> AlignResponse:
     """Produce deterministic, schema-compliant alignments for a transcript."""
@@ -66,6 +71,7 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         transcript_source=transcript_source,
         asr_backend=(asr_result.backend if asr_result is not None else None),
         asr_model_id=(asr_result.model_id if asr_result is not None else None),
+        license_warning=_license_warning(asr_result),
         model_id=backend_result.model_id,
         algorithm=backend_result.algorithm,
         generated_at=datetime.now(UTC),
@@ -135,6 +141,14 @@ def _resolve_final_language_pack(
     if not detected or detected == "und":
         return resolve_language_pack(initial_language_code)
     return resolve_language_pack(detected)
+
+
+def _license_warning(asr_result: AsrResult | None) -> str | None:
+    if asr_result is None:
+        return None
+    if asr_result.backend == "crisper_whisper":
+        return _CRISPER_LICENSE_WARNING
+    return None
 
 
 def _build_phoneme_alignments(words: list[WordAlignment]) -> list[PhonemeAlignment]:

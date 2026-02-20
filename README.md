@@ -142,6 +142,13 @@ ASR backend selection:
 
 Use `--verbatim` to route English `--asr auto` to `crisper_whisper`.
 
+License warning behavior for `crisper_whisper`:
+
+- CLI prints a runtime warning to stderr.
+- API response includes:
+  - `metadata.license_warning`
+  - `X-VoxAlign-License-Warning` response header
+
 Enable Hugging Face emissions (optional):
 
 ```bash
@@ -285,6 +292,47 @@ uv run python eval/asr_disfluency_smoke.py \
   --audio-path tests/fixtures/sample_en.wav \
   --language en
 ```
+
+## Licensing
+
+Project license:
+
+- `voxalign` source code: MIT
+
+Runtime dependencies in this repository:
+
+- `fastapi`: MIT
+- `uvicorn`: BSD-3-Clause
+- `pydantic`: MIT
+- `numpy`: BSD-3-Clause + additional component licenses (see NumPy distribution metadata)
+
+Optional ASR/alignment runtime dependencies:
+
+- `torch` (PyTorch): BSD-3-Clause
+- `transformers`: Apache-2.0
+
+Developer/tooling dependencies used in this repo:
+
+- `uv`: Apache-2.0 OR MIT (dual license)
+- `mise`: MIT
+- `pre-commit`: MIT
+- `pytest`: MIT
+- `mypy`: MIT
+- `ruff`: MIT
+
+Model licenses (downloaded from Hugging Face at runtime when enabled):
+
+- `nvidia/parakeet-ctc-1.1b`: CC-BY-4.0
+- `nyrahealth/CrisperWhisper`: CC-BY-NC-4.0 (non-commercial)
+- `openai/whisper-large-v3`: Apache-2.0
+- `facebook/wav2vec2-xlsr-53-espeak-cv-ft`: Apache-2.0
+- `facebook/mms-1b-all`: CC-BY-NC-4.0 (non-commercial)
+
+Important:
+
+- `CrisperWhisper` and `MMS` model licenses are non-commercial. Keep them opt-in when commercial use is possible.
+- Always verify upstream license files/model cards at the commit/version you deploy.
+- See `LICENSE` for repo license text and third-party notice summary.
 
 ## Pre-commit hooks
 

@@ -1,0 +1,63 @@
+MIT License
+
+Copyright (c) 2026 byseon
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Third-Party Notices (Informational)
+===================================
+
+The items below are used by this repository directly or as optional runtime
+components. Their licenses are controlled by their upstream maintainers.
+
+Core runtime dependencies
+-------------------------
+- fastapi: MIT
+- uvicorn: BSD-3-Clause
+- pydantic: MIT
+- numpy: BSD-3-Clause + additional component licenses (see NumPy metadata)
+
+Optional ASR/alignment runtime dependencies
+-------------------------------------------
+- torch (PyTorch): BSD-3-Clause
+- transformers: Apache-2.0
+
+Developer tools
+---------------
+- uv: Apache-2.0 OR MIT (dual license)
+- mise: MIT
+- pre-commit: MIT
+- pytest: MIT
+- mypy: MIT
+- ruff: MIT
+
+Model assets (downloaded at runtime when enabled)
+-------------------------------------------------
+- nvidia/parakeet-ctc-1.1b: CC-BY-4.0
+- nyrahealth/CrisperWhisper: CC-BY-NC-4.0 (non-commercial)
+- openai/whisper-large-v3: Apache-2.0
+- facebook/wav2vec2-xlsr-53-espeak-cv-ft: Apache-2.0
+- facebook/mms-1b-all: CC-BY-NC-4.0 (non-commercial)
+
+Important notice:
+- This project does not relicense third-party software or model artifacts.
+- Non-commercial licenses (for example CC-BY-NC-4.0) are not suitable for
+  commercial workloads unless you obtain separate rights from the owner.
+- Upstream licenses can change; verify current terms before distribution or
+  production deployment.

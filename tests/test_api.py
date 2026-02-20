@@ -37,6 +37,7 @@ def test_align_endpoint() -> None:
     assert payload["metadata"]["transcript_source"] == "provided"
     assert payload["metadata"]["asr_backend"] is None
     assert payload["metadata"]["asr_model_id"] is None
+    assert payload["metadata"]["license_warning"] is None
     assert payload["metadata"]["model_id"] == "baseline-rule-v1"
     assert len(payload["words"]) == 2
     assert len(payload["phonemes"]) >= 2
@@ -95,6 +96,27 @@ def test_align_endpoint_with_asr_auto() -> None:
     assert payload["metadata"]["transcript_source"] == "asr"
     assert payload["metadata"]["asr_backend"] == "parakeet"
     assert payload["metadata"]["asr_model_id"] == "simulated-asr-v1"
+    assert payload["metadata"]["license_warning"] is None
+
+
+def test_align_endpoint_with_crisper_has_license_warning() -> None:
+    client = TestClient(create_app())
+    response = client.post(
+        "/v1/align",
+        json={
+            "audio_path": "sample.wav",
+            "language": "en",
+            "backend": "phoneme_first",
+            "asr": "crisper_whisper",
+        },
+    )
+
+    assert response.status_code == 200
+    assert "x-voxalign-license-warning" in response.headers
+    assert "CC BY-NC 4.0" in response.headers["x-voxalign-license-warning"]
+    payload = response.json()
+    assert payload["metadata"]["asr_backend"] == "crisper_whisper"
+    assert "CC BY-NC 4.0" in payload["metadata"]["license_warning"]
 
 
 def test_align_endpoint_without_transcript_and_disabled_asr() -> None:

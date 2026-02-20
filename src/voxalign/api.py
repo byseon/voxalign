@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 
 from voxalign import __version__
 from voxalign.config import load_config
@@ -24,11 +24,14 @@ def create_app() -> FastAPI:
         return HealthResponse(status="ok", version=__version__, env=config.env)
 
     @app.post("/v1/align", response_model=AlignResponse, tags=["alignment"])
-    def align(request: AlignRequest) -> AlignResponse:
+    def align(request: AlignRequest, response: Response) -> AlignResponse:
         try:
-            return run_alignment(request)
+            alignment = run_alignment(request)
         except ValueError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
+        if alignment.metadata.license_warning is not None:
+            response.headers["X-VoxAlign-License-Warning"] = alignment.metadata.license_warning
+        return alignment
 
     return app
 

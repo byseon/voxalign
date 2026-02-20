@@ -102,3 +102,27 @@ def test_cli_align_with_asr_auto(capsys) -> None:
     payload = json.loads(captured.out)
     assert payload["metadata"]["transcript_source"] == "asr"
     assert payload["metadata"]["asr_backend"] == "parakeet"
+    assert payload["metadata"]["license_warning"] is None
+
+
+def test_cli_align_with_crisper_shows_license_warning(capsys) -> None:
+    exit_code = main(
+        [
+            "align",
+            "sample.wav",
+            "--language",
+            "en",
+            "--backend",
+            "phoneme_first",
+            "--asr",
+            "crisper_whisper",
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    payload = json.loads(captured.out)
+    assert payload["metadata"]["transcript_source"] == "asr"
+    assert payload["metadata"]["asr_backend"] == "crisper_whisper"
+    assert "CC BY-NC 4.0" in payload["metadata"]["license_warning"]
+    assert "WARNING:" in captured.err

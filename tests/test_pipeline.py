@@ -23,6 +23,7 @@ def test_run_alignment_with_words() -> None:
     assert response.metadata.transcript_source == "provided"
     assert response.metadata.asr_backend is None
     assert response.metadata.asr_model_id is None
+    assert response.metadata.license_warning is None
     assert response.metadata.duration_sec > 0.0
     assert len(response.words) == 3
     assert response.words[0].word == "hello"
@@ -45,6 +46,7 @@ def test_run_alignment_without_phonemes() -> None:
     assert response.metadata.token_count == 2
     assert response.metadata.timing_source == "heuristic"
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
     assert len(response.words) == 2
     assert response.phonemes == []
 
@@ -63,6 +65,7 @@ def test_run_alignment_empty_word_list() -> None:
     assert response.metadata.token_count == 0
     assert response.metadata.timing_source == "heuristic"
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
     assert response.words == []
     assert response.phonemes == []
 
@@ -85,6 +88,7 @@ def test_run_alignment_uses_wav_duration(tmp_path: Path) -> None:
     assert response.metadata.duration_sec == 1.0
     assert response.metadata.sample_rate_hz == 16000
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
     assert response.words[-1].end_sec == 1.0
 
 
@@ -102,6 +106,7 @@ def test_run_alignment_ctc_backend_selection() -> None:
     assert response.metadata.model_id == "ctc-trellis-v0"
     assert response.metadata.algorithm == "ctc-viterbi-simulated-emissions"
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
 
 
 def test_run_alignment_phoneme_first_english() -> None:
@@ -119,6 +124,7 @@ def test_run_alignment_phoneme_first_english() -> None:
     assert "facebook/wav2vec2-xlsr-53-espeak-cv-ft" in response.metadata.model_id
     assert "phoneme-first-en-word-ctc-then-ipa-constrained" in response.metadata.algorithm
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
     assert response.phonemes
     assert response.phonemes[0].word_index == 0
 
@@ -138,6 +144,7 @@ def test_run_alignment_phoneme_first_korean() -> None:
     assert response.metadata.model_id == "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
     assert response.metadata.algorithm == "phoneme-first-multilingual-ipa-ctc"
     assert response.metadata.transcript_source == "provided"
+    assert response.metadata.license_warning is None
     assert len(response.words) == 2
     assert response.phonemes
 
@@ -157,6 +164,7 @@ def test_run_alignment_with_asr_auto_when_transcript_missing() -> None:
     assert response.metadata.transcript_source == "asr"
     assert response.metadata.asr_backend == "parakeet"
     assert response.metadata.asr_model_id == "simulated-asr-v1"
+    assert response.metadata.license_warning is None
     assert response.words
 
 
@@ -174,6 +182,8 @@ def test_run_alignment_with_asr_auto_verbatim_routes_to_crisper() -> None:
 
     assert response.metadata.transcript_source == "asr"
     assert response.metadata.asr_backend == "crisper_whisper"
+    assert response.metadata.license_warning is not None
+    assert "CC BY-NC 4.0" in response.metadata.license_warning
     assert response.words[0].word == "uh"
 
 

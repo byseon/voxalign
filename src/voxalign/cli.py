@@ -96,6 +96,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             return 2
+        if response.metadata.license_warning is not None:
+            print(f"WARNING: {response.metadata.license_warning}", file=sys.stderr)
         if args.output:
             write_json(response, args.output)
             print(f"Wrote alignment JSON to {args.output}")

@@ -61,6 +61,7 @@ class AlignmentMetadata(BaseModel):
     transcript_source: Literal["provided", "asr"]
     asr_backend: AsrBackendName | None = None
     asr_model_id: str | None = None
+    license_warning: str | None = None
     model_id: str
     algorithm: str
     generated_at: datetime
