@@ -9,25 +9,59 @@ Routing strategy:
 
 from __future__ import annotations
 
+import math
 import os
 from dataclasses import dataclass
+from typing import Any
 
 from voxalign.align.backends.base import BackendName, BackendResult
 from voxalign.align.backends.ctc_trellis import CtcTrellisBackend
+from voxalign.align.trellis import (
+    TokenFrameSpan,
+    build_state_symbols,
+    token_spans_from_state_path,
+    viterbi_state_path,
+)
+from voxalign.io import read_wav_audio, resample_linear
 from voxalign.models import PhonemeAlignment, WordAlignment
 
 _PHONEME_MODEL_ID = "facebook/wav2vec2-xlsr-53-espeak-cv-ft"
 _ALGO_EN = "phoneme-first-en-word-ctc-then-ipa-constrained"
 _ALGO_MULTI = "phoneme-first-multilingual-ipa-ctc"
+_ALGO_MULTI_REAL = "phoneme-first-multilingual-ipa-ctc-hf-emissions"
 _ALGO_MULTI_FALLBACK = "phoneme-first-multilingual-ipa-fallback-to-ctc-word"
 _ENGLISH_CODE = "en"
 _KOREAN_CODE = "ko"
+_HF_CACHE: dict[str, _HfBundle] = {}
 
 
 @dataclass(frozen=True)
 class _WordPhonemes:
     word: str
     phonemes: list[str]
+
+
+@dataclass(frozen=True)
+class _PhonemeUnit:
+    phoneme: str
+    word_index: int
+
+
+@dataclass(frozen=True)
+class _PhonemePack:
+    phonemes: list[PhonemeAlignment]
+    model_id: str
+    algorithm: str
+
+
+@dataclass(frozen=True)
+class _HfBundle:
+    processor: Any
+    model: Any
+    target_sample_rate_hz: int
+    blank_id: int
+    device: str
+    model_id: str
 
 
 class PhonemeFirstBackend:
@@ -79,10 +113,24 @@ class PhonemeFirstBackend:
                 phonemes=phonemes,
             )
 
-        phonemes = _align_phonemes_globally(
+        real_pack = _try_real_phoneme_pack(
             words_with_phonemes=words_with_phonemes,
             duration_sec=duration_sec,
+            audio_path=audio_path,
+            sample_rate_hz=sample_rate_hz,
         )
+        if real_pack is None:
+            phonemes = _align_phonemes_globally(
+                words_with_phonemes=words_with_phonemes,
+                duration_sec=duration_sec,
+            )
+            model_id = _resolve_phoneme_model_id()
+            algorithm = _ALGO_MULTI
+        else:
+            phonemes = real_pack.phonemes
+            model_id = real_pack.model_id
+            algorithm = real_pack.algorithm
+
         if not phonemes:
             fallback = self._word_backend.align_words(
                 tokens,
@@ -93,7 +141,7 @@ class PhonemeFirstBackend:
             )
             return BackendResult(
                 words=fallback.words,
-                model_id=f"{_resolve_phoneme_model_id()}+{fallback.model_id}",
+                model_id=f"{model_id}+{fallback.model_id}",
                 algorithm=f"{_ALGO_MULTI_FALLBACK}+{fallback.algorithm}",
                 phonemes=[],
             )
@@ -105,10 +153,263 @@ class PhonemeFirstBackend:
         )
         return BackendResult(
             words=words,
-            model_id=_resolve_phoneme_model_id(),
-            algorithm=_ALGO_MULTI,
+            model_id=model_id,
+            algorithm=algorithm,
             phonemes=phonemes,
         )
+
+
+def _try_real_phoneme_pack(
+    *,
+    words_with_phonemes: list[_WordPhonemes],
+    duration_sec: float,
+    audio_path: str | None,
+    sample_rate_hz: int | None,
+) -> _PhonemePack | None:
+    if audio_path is None:
+        return None
+    if not _env_truthy("VOXALIGN_PHONEME_USE_HF", default=False):
+        return None
+
+    wav_payload = read_wav_audio(audio_path)
+    if wav_payload is None:
+        return None
+    audio, detected_sample_rate_hz = wav_payload
+    if sample_rate_hz is None:
+        sample_rate_hz = detected_sample_rate_hz
+
+    bundle = _load_hf_bundle()
+    if bundle is None:
+        return None
+
+    if sample_rate_hz != bundle.target_sample_rate_hz:
+        audio = resample_linear(
+            audio,
+            src_hz=sample_rate_hz,
+            dst_hz=bundle.target_sample_rate_hz,
+        )
+        sample_rate_hz = bundle.target_sample_rate_hz
+
+    try:
+        import torch  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        return None
+
+    try:
+        inputs = bundle.processor(audio, sampling_rate=sample_rate_hz, return_tensors="pt")
+        inputs = {key: value.to(bundle.device) for key, value in inputs.items()}
+        with torch.no_grad():
+            logits = bundle.model(**inputs).logits[0]
+            log_probs = torch.log_softmax(logits, dim=-1).cpu().tolist()
+    except Exception:
+        return None
+
+    if not log_probs:
+        return None
+
+    phone_units = _flatten_phone_units(words_with_phonemes)
+    if not phone_units:
+        return None
+
+    tokenization = _encode_phone_units_for_ctc(
+        phone_units=phone_units,
+        tokenizer=bundle.processor.tokenizer,
+        blank_id=bundle.blank_id,
+    )
+    if tokenization is None:
+        return None
+    token_ids, phone_token_spans = tokenization
+    if any(token_id >= len(log_probs[0]) for token_id in token_ids):
+        return None
+
+    state_symbols = build_state_symbols(token_ids, blank_id=bundle.blank_id)
+    state_path = viterbi_state_path(emissions=log_probs, state_symbols=state_symbols)
+    token_spans = token_spans_from_state_path(state_path=state_path, token_count=len(token_ids))
+    phoneme_alignments = _phoneme_alignments_from_token_spans(
+        phone_units=phone_units,
+        phone_token_spans=phone_token_spans,
+        token_ids=token_ids,
+        token_spans=token_spans,
+        emissions=log_probs,
+        duration_sec=duration_sec,
+    )
+    if not phoneme_alignments:
+        return None
+
+    safe_model_id = bundle.model_id.replace("/", "-")
+    return _PhonemePack(
+        phonemes=phoneme_alignments,
+        model_id=f"hf-{safe_model_id}",
+        algorithm=_ALGO_MULTI_REAL,
+    )
+
+
+def _load_hf_bundle() -> _HfBundle | None:
+    model_id = _resolve_phoneme_model_id()
+    device_pref = os.getenv("VOXALIGN_PHONEME_DEVICE", "auto")
+    cache_key = f"{model_id}@{device_pref}"
+    cached = _HF_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        import torch
+        from transformers import AutoModelForCTC, AutoProcessor  # type: ignore[import-not-found]
+    except ModuleNotFoundError:
+        return None
+
+    try:
+        processor = AutoProcessor.from_pretrained(model_id)
+        model = AutoModelForCTC.from_pretrained(model_id)
+    except Exception:
+        return None
+
+    tokenizer = getattr(processor, "tokenizer", None)
+    if tokenizer is None:
+        return None
+
+    device = _resolve_torch_device(torch=torch, preference=device_pref)
+    model = model.to(device)
+    model.eval()
+
+    feature_extractor = getattr(processor, "feature_extractor", None)
+    target_hz = int(getattr(feature_extractor, "sampling_rate", 16000))
+    blank_id = getattr(tokenizer, "pad_token_id", 0)
+    if blank_id is None:
+        blank_id = 0
+
+    bundle = _HfBundle(
+        processor=processor,
+        model=model,
+        target_sample_rate_hz=target_hz,
+        blank_id=int(blank_id),
+        device=device,
+        model_id=model_id,
+    )
+    _HF_CACHE[cache_key] = bundle
+    return bundle
+
+
+def _resolve_torch_device(torch: Any, preference: str) -> str:
+    pref = preference.casefold()
+    if pref == "cpu":
+        return "cpu"
+    if pref == "cuda":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if pref == "mps":
+        if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            return "mps"
+        return "cpu"
+
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def _flatten_phone_units(words_with_phonemes: list[_WordPhonemes]) -> list[_PhonemeUnit]:
+    units: list[_PhonemeUnit] = []
+    for word_index, item in enumerate(words_with_phonemes):
+        phones = item.phonemes or [item.word]
+        for phone in phones:
+            units.append(_PhonemeUnit(phoneme=phone, word_index=word_index))
+    return units
+
+
+def _encode_phone_units_for_ctc(
+    *,
+    phone_units: list[_PhonemeUnit],
+    tokenizer: Any,
+    blank_id: int,
+) -> tuple[list[int], list[tuple[int, int]]] | None:
+    token_ids: list[int] = []
+    phone_token_spans: list[tuple[int, int]] = []
+    unk_id = getattr(tokenizer, "unk_token_id", None)
+
+    for unit in phone_units:
+        normalized_phone = _normalize_phone_text(unit.phoneme)
+        encoded = tokenizer(normalized_phone, add_special_tokens=False).input_ids
+        ids = [int(token_id) for token_id in encoded if int(token_id) != blank_id]
+        if not ids:
+            if unk_id is None or int(unk_id) == blank_id:
+                return None
+            ids = [int(unk_id)]
+
+        start = len(token_ids)
+        token_ids.extend(ids)
+        end = len(token_ids)
+        phone_token_spans.append((start, end))
+
+    if not token_ids:
+        return None
+    return token_ids, phone_token_spans
+
+
+def _normalize_phone_text(phone: str) -> str:
+    return phone.strip()
+
+
+def _phoneme_alignments_from_token_spans(
+    *,
+    phone_units: list[_PhonemeUnit],
+    phone_token_spans: list[tuple[int, int]],
+    token_ids: list[int],
+    token_spans: list[TokenFrameSpan],
+    emissions: list[list[float]],
+    duration_sec: float,
+) -> list[PhonemeAlignment]:
+    if not emissions:
+        return []
+    frame_count = max(1, len(emissions))
+    frame_sec = duration_sec / frame_count if duration_sec > 0 else 0.0
+    output: list[PhonemeAlignment] = []
+
+    for index, unit in enumerate(phone_units):
+        token_start, token_end = phone_token_spans[index]
+        span_slice = token_spans[token_start:token_end]
+        id_slice = token_ids[token_start:token_end]
+        valid_spans = [span for span in span_slice if span.end_frame > span.start_frame]
+        if valid_spans:
+            start_frame = valid_spans[0].start_frame
+            end_frame = valid_spans[-1].end_frame
+        else:
+            start_frame = 0
+            end_frame = 0
+
+        start_sec = round(start_frame * frame_sec, 3)
+        end_sec = round(end_frame * frame_sec, 3)
+        if index == len(phone_units) - 1:
+            end_sec = duration_sec
+        confidence = round(_token_span_confidence(emissions, id_slice, span_slice), 3)
+
+        output.append(
+            PhonemeAlignment(
+                phoneme=unit.phoneme,
+                word_index=unit.word_index,
+                start_sec=start_sec,
+                end_sec=end_sec,
+                confidence=confidence,
+            )
+        )
+    return output
+
+
+def _token_span_confidence(
+    emissions: list[list[float]],
+    token_ids: list[int],
+    token_spans: list[TokenFrameSpan],
+) -> float:
+    probabilities: list[float] = []
+    for token_id, span in zip(token_ids, token_spans, strict=True):
+        if span.end_frame <= span.start_frame:
+            continue
+        for frame in range(span.start_frame, span.end_frame):
+            probabilities.append(math.exp(emissions[frame][token_id]))
+    if not probabilities:
+        return 0.6
+    mean_prob = sum(probabilities) / len(probabilities)
+    return min(0.95, max(0.6, mean_prob))
 
 
 def _align_phonemes_with_word_constraints(
@@ -271,3 +572,10 @@ def _normalize_language_code(language_code: str | None) -> str | None:
     if not cleaned:
         return None
     return cleaned.split("-")[0]
+
+
+def _env_truthy(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.casefold() not in {"0", "false", "no", "off"}

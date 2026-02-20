@@ -38,7 +38,7 @@ This plan is now synced to the detailed Notion architecture content provided in-
 - Gap to target:
   - Current backend is token CTC alignment, not full phoneme-first IPA pipeline.
   - Dedicated VAD/ASR/G2P adapters are not wired yet.
-  - `xlsr-53-espeak-cv-ft` constrained phoneme alignment backend not wired yet.
+  - `xlsr-53-espeak-cv-ft` path is partially wired (multilingual optional HF), but constrained phoneme alignment and robust G2P mapping are still pending.
   - Export formats beyond JSON (TextGrid/SRT/ASS/CTM) pending.
 
 ## Milestones (Updated)
@@ -56,7 +56,7 @@ This plan is now synced to the detailed Notion architecture content provided in-
 5. IPA aligner integration
    - Integrate `facebook/wav2vec2-xlsr-53-espeak-cv-ft` as phoneme CTC aligner.
    - Add constrained Viterbi decoding over IPA target sequence.
-   - Status: pending
+   - Status: in progress (optional multilingual HF-emissions path added)
 6. English high-precision word-boundary path
    - Integrate Parakeet CTC 1.1B path for English word boundary constraints.
    - Evaluate Parakeet TDT path in dedicated backend.

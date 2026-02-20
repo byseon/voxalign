@@ -38,7 +38,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Status: in progress (phoneme-first routing + ASR adapters added; VAD/G2P providers pending)
 6. IPA phoneme aligner integration
    - Integrate `facebook/wav2vec2-xlsr-53-espeak-cv-ft` with constrained CTC/Viterbi
-   - Status: pending
+   - Status: in progress (multilingual HF IPA-emission path added behind env flag)
 7. English high-precision boundary path
    - Integrate Parakeet CTC 1.1B and evaluate Parakeet TDT backend
    - Status: pending

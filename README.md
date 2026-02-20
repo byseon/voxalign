@@ -185,6 +185,8 @@ Target phoneme-aligner ID for the phoneme-first path:
 
 - `facebook/wav2vec2-xlsr-53-espeak-cv-ft`
 - Override with `VOXALIGN_PHONEME_MODEL_ID=<hf_model_id>`
+- Set `VOXALIGN_PHONEME_USE_HF=1` to enable real IPA-model emissions in `phoneme_first`
+- Optional device override: `VOXALIGN_PHONEME_DEVICE=auto|cpu|cuda|mps`
 
 ASR model IDs (override via env):
 
