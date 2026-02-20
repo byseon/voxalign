@@ -35,7 +35,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Status: completed as interim backend (trellis/Viterbi + optional HF emissions + language model routing)
 5. Phoneme-first pipeline foundation
    - Add VAD/ASR/G2P provider interfaces and IPA target sequence contracts
-   - Status: in progress (phoneme-first backend routing added; provider interfaces pending)
+   - Status: in progress (phoneme-first routing + ASR adapters added; VAD/G2P providers pending)
 6. IPA phoneme aligner integration
    - Integrate `facebook/wav2vec2-xlsr-53-espeak-cv-ft` with constrained CTC/Viterbi
    - Status: pending

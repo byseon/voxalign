@@ -22,13 +22,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     align = subparsers.add_parser("align", help="Align transcript to audio")
     align.add_argument("audio_path", help="Path to input audio file")
-    align.add_argument("transcript", help="Transcript text or transcript file path")
+    align.add_argument(
+        "transcript",
+        nargs="?",
+        default=None,
+        help="Transcript text or transcript file path (optional when ASR is enabled)",
+    )
     align.add_argument("--language", default="auto", help="Language code (default: auto)")
     align.add_argument(
         "--backend",
         default="uniform",
         choices=["uniform", "ctc_trellis", "phoneme_first"],
         help="Alignment backend (default: uniform)",
+    )
+    align.add_argument(
+        "--asr",
+        default="disabled",
+        choices=["disabled", "auto", "parakeet", "crisper_whisper", "whisper_large_v3"],
+        help="ASR backend when transcript is omitted (default: disabled)",
+    )
+    align.add_argument(
+        "--verbatim",
+        action="store_true",
+        help="Prefer verbatim ASR behavior for auto routing (English only)",
     )
     align.add_argument(
         "--sample-rate-hz",
@@ -70,10 +86,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             transcript=args.transcript,
             language=args.language,
             backend=args.backend,
+            asr=args.asr,
+            verbatim=args.verbatim,
             include_phonemes=not args.no_phonemes,
             sample_rate_hz=args.sample_rate_hz,
         )
-        response = run_alignment(request)
+        try:
+            response = run_alignment(request)
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
         if args.output:
             write_json(response, args.output)
             print(f"Wrote alignment JSON to {args.output}")

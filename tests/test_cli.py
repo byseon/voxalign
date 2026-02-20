@@ -22,6 +22,8 @@ def test_cli_align_returns_json(capsys) -> None:
     assert payload["metadata"]["alignment_backend"] == "uniform"
     assert payload["metadata"]["normalizer_id"] == "english-basic-v1"
     assert payload["metadata"]["timing_source"] == "heuristic"
+    assert payload["metadata"]["transcript_source"] == "provided"
+    assert payload["metadata"]["asr_backend"] is None
     assert payload["words"][0]["word"] == "hello"
     assert payload["phonemes"]
 
@@ -71,3 +73,32 @@ def test_cli_align_phoneme_first_backend(capsys) -> None:
     payload = json.loads(captured.out)
     assert payload["metadata"]["alignment_backend"] == "phoneme_first"
     assert "facebook/wav2vec2-xlsr-53-espeak-cv-ft" in payload["metadata"]["model_id"]
+
+
+def test_cli_align_without_transcript_and_without_asr_fails(capsys) -> None:
+    exit_code = main(["align", "sample.wav", "--language", "en"])
+    captured = capsys.readouterr()
+
+    assert exit_code == 2
+    assert "transcript is required" in captured.err
+
+
+def test_cli_align_with_asr_auto(capsys) -> None:
+    exit_code = main(
+        [
+            "align",
+            "sample.wav",
+            "--language",
+            "en",
+            "--backend",
+            "phoneme_first",
+            "--asr",
+            "auto",
+        ]
+    )
+    captured = capsys.readouterr()
+
+    assert exit_code == 0
+    payload = json.loads(captured.out)
+    assert payload["metadata"]["transcript_source"] == "asr"
+    assert payload["metadata"]["asr_backend"] == "parakeet"

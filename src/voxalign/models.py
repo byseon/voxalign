@@ -7,6 +7,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from voxalign.asr.base import AsrBackendName
+
 
 class HealthResponse(BaseModel):
     """Response payload for the API health endpoint."""
@@ -20,9 +22,11 @@ class AlignRequest(BaseModel):
     """Alignment request payload used by both CLI and API."""
 
     audio_path: str = Field(min_length=1)
-    transcript: str = Field(min_length=1)
+    transcript: str | None = None
     language: str = Field(default="auto", min_length=2)
     backend: Literal["uniform", "ctc_trellis", "phoneme_first"] = "uniform"
+    asr: AsrBackendName = "disabled"
+    verbatim: bool = False
     include_phonemes: bool = True
     sample_rate_hz: int | None = Field(default=None, ge=8_000, le=192_000)
 
@@ -54,6 +58,9 @@ class AlignmentMetadata(BaseModel):
     normalizer_id: str
     token_count: int = Field(ge=0)
     timing_source: Literal["audio", "heuristic"]
+    transcript_source: Literal["provided", "asr"]
+    asr_backend: AsrBackendName | None = None
+    asr_model_id: str | None = None
     model_id: str
     algorithm: str
     generated_at: datetime

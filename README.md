@@ -100,6 +100,12 @@ CLI baseline alignment:
 uv run voxalign align sample.wav "hello world" --language en
 ```
 
+ASR-driven alignment (transcript omitted):
+
+```bash
+uv run voxalign align sample.wav --language en --asr auto --backend phoneme_first
+```
+
 English alias inputs are supported (`en-US`, `en-GB`, `en-CA`, `en-AU`).
 
 Timing behavior:
@@ -125,6 +131,16 @@ Use backend selection:
 uv run voxalign align sample.wav "hello world" --backend ctc_trellis
 uv run voxalign align sample.wav "hello world" --backend phoneme_first
 ```
+
+ASR backend selection:
+
+- `--asr disabled` (default; transcript required)
+- `--asr auto` (English: `parakeet`, non-English: `whisper_large_v3`)
+- `--asr parakeet`
+- `--asr crisper_whisper`
+- `--asr whisper_large_v3`
+
+Use `--verbatim` to route English `--asr auto` to `crisper_whisper`.
 
 Enable Hugging Face emissions (optional):
 
@@ -162,6 +178,13 @@ Target phoneme-aligner ID for the phoneme-first path:
 
 - `facebook/wav2vec2-xlsr-53-espeak-cv-ft`
 - Override with `VOXALIGN_PHONEME_MODEL_ID=<hf_model_id>`
+
+ASR model IDs (override via env):
+
+- `VOXALIGN_ASR_PARAKEET_MODEL_ID` (default: `nvidia/parakeet-ctc-1.1b`)
+- `VOXALIGN_ASR_CRISPER_MODEL_ID` (default: `nyrahealth/CrisperWhisper`)
+- `VOXALIGN_ASR_WHISPER_MODEL_ID` (default: `openai/whisper-large-v3`)
+- `VOXALIGN_ASR_USE_HF=1` to enable real HF model inference
 
 Write result to file:
 
@@ -254,6 +277,14 @@ See benchmark details in:
 
 - `eval/README.md`
 - `docs/benchmark-plan.md`
+
+ASR disfluency smoke check:
+
+```bash
+uv run python eval/asr_disfluency_smoke.py \
+  --audio-path tests/fixtures/sample_en.wav \
+  --language en
+```
 
 ## Pre-commit hooks
 

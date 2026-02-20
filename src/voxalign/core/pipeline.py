@@ -10,8 +10,11 @@ from datetime import UTC, datetime
 from typing import Literal
 
 from voxalign.align import resolve_backend
+from voxalign.asr.base import AsrResult
+from voxalign.asr.registry import transcribe_audio
 from voxalign.io import read_audio_metadata
 from voxalign.languages import resolve_language_pack
+from voxalign.languages.base import BaseLanguagePack
 from voxalign.models import (
     AlignmentMetadata,
     AlignRequest,
@@ -23,9 +26,18 @@ from voxalign.models import (
 
 def run_alignment(request: AlignRequest) -> AlignResponse:
     """Produce deterministic, schema-compliant alignments for a transcript."""
-    language_pack = resolve_language_pack(request.language)
     backend = resolve_backend(request.backend)
-    normalized = language_pack.normalize(request.transcript)
+    initial_language_pack = resolve_language_pack(request.language)
+    transcript, transcript_source, asr_result = _resolve_transcript(
+        request=request,
+        language_code=initial_language_pack.code,
+    )
+    language_pack = _resolve_final_language_pack(
+        request_language=request.language,
+        initial_language_code=initial_language_pack.code,
+        asr_result=asr_result,
+    )
+    normalized = language_pack.normalize(transcript)
     duration_sec, resolved_sample_rate_hz, timing_source = _resolve_timing(
         audio_path=request.audio_path,
         token_count=len(normalized.tokens),
@@ -51,6 +63,9 @@ def run_alignment(request: AlignRequest) -> AlignResponse:
         normalizer_id=language_pack.normalizer_id,
         token_count=len(normalized.tokens),
         timing_source=timing_source,
+        transcript_source=transcript_source,
+        asr_backend=(asr_result.backend if asr_result is not None else None),
+        asr_model_id=(asr_result.model_id if asr_result is not None else None),
         model_id=backend_result.model_id,
         algorithm=backend_result.algorithm,
         generated_at=datetime.now(UTC),
@@ -78,6 +93,48 @@ def _resolve_timing(
 
     duration_sec = _estimate_duration_sec(token_count)
     return duration_sec, requested_sample_rate_hz, "heuristic"
+
+
+def _resolve_transcript(
+    *,
+    request: AlignRequest,
+    language_code: str,
+) -> tuple[str, Literal["provided", "asr"], AsrResult | None]:
+    if request.transcript is not None:
+        transcript = request.transcript.strip()
+        if transcript:
+            return transcript, "provided", None
+
+    if request.asr == "disabled":
+        raise ValueError("transcript is required when --asr is disabled")
+
+    asr_result = transcribe_audio(
+        audio_path=request.audio_path,
+        language_code=(None if request.language.casefold() == "auto" else language_code),
+        backend=request.asr,
+        verbatim=request.verbatim,
+        sample_rate_hz=request.sample_rate_hz,
+    )
+    transcript = asr_result.transcript.strip()
+    if not transcript:
+        raise ValueError("ASR did not return a transcript")
+    return transcript, "asr", asr_result
+
+
+def _resolve_final_language_pack(
+    *,
+    request_language: str,
+    initial_language_code: str,
+    asr_result: AsrResult | None,
+) -> BaseLanguagePack:
+    if request_language.casefold() != "auto":
+        return resolve_language_pack(initial_language_code)
+    if asr_result is None:
+        return resolve_language_pack(initial_language_code)
+    detected = asr_result.language_code
+    if not detected or detected == "und":
+        return resolve_language_pack(initial_language_code)
+    return resolve_language_pack(detected)
 
 
 def _build_phoneme_alignments(words: list[WordAlignment]) -> list[PhonemeAlignment]:

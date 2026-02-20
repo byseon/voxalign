@@ -27,6 +27,14 @@ uv run python eval/benchmark.py \
   --backend ctc_trellis
 ```
 
+ASR disfluency smoke:
+
+```bash
+uv run python eval/asr_disfluency_smoke.py \
+  --audio-path tests/fixtures/sample_en.wav \
+  --language en
+```
+
 Target benchmark manifests:
 
 - `eval/manifests/buckeye.sample.jsonl` (English)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from voxalign import __version__
 from voxalign.config import load_config
@@ -25,7 +25,10 @@ def create_app() -> FastAPI:
 
     @app.post("/v1/align", response_model=AlignResponse, tags=["alignment"])
     def align(request: AlignRequest) -> AlignResponse:
-        return run_alignment(request)
+        try:
+            return run_alignment(request)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     return app
 
