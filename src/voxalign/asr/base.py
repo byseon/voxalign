@@ -5,7 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-AsrBackendName = Literal["disabled", "auto", "parakeet", "crisper_whisper", "whisper_large_v3"]
+AsrBackendName = Literal[
+    "disabled",
+    "auto",
+    "parakeet",
+    "parakeet_tdt",
+    "crisper_whisper",
+    "whisper_large_v3",
+]
 AsrSource = Literal["real", "simulated"]
 
 

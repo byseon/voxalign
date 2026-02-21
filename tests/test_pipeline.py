@@ -168,6 +168,25 @@ def test_run_alignment_with_asr_auto_when_transcript_missing() -> None:
     assert response.words
 
 
+def test_run_alignment_with_asr_auto_for_french_routes_to_parakeet_tdt() -> None:
+    response = run_alignment(
+        AlignRequest(
+            audio_path="audio.wav",
+            transcript=None,
+            language="fr",
+            backend="phoneme_first",
+            asr="auto",
+        )
+    )
+
+    assert response.metadata.language == "fr"
+    assert response.metadata.transcript_source == "asr"
+    assert response.metadata.asr_backend == "parakeet_tdt"
+    assert response.metadata.asr_model_id == "simulated-asr-v1"
+    assert response.metadata.license_warning is None
+    assert response.words
+
+
 def test_run_alignment_with_asr_auto_verbatim_routes_to_crisper() -> None:
     response = run_alignment(
         AlignRequest(

@@ -11,10 +11,45 @@ from voxalign.asr.base import AsrBackendName, AsrResult
 from voxalign.io import read_wav_audio, resample_linear
 
 _DEFAULT_PARAKEET_MODEL_ID = "nvidia/parakeet-ctc-1.1b"
+_DEFAULT_PARAKEET_TDT_MODEL_ID = "nvidia/parakeet-tdt-0.6b-v3"
 _DEFAULT_CRISPER_MODEL_ID = "nyrahealth/CrisperWhisper"
 _DEFAULT_WHISPER_MODEL_ID = "openai/whisper-large-v3"
 _SIM_MODEL_ID = "simulated-asr-v1"
 _SPACES_RE = re.compile(r"\s+")
+_PARAKEET_TDT_EU_CODES = {
+    "bg",
+    "ca",
+    "cs",
+    "cy",
+    "da",
+    "de",
+    "el",
+    "es",
+    "et",
+    "eu",
+    "fi",
+    "fr",
+    "ga",
+    "gl",
+    "hr",
+    "hu",
+    "is",
+    "it",
+    "lt",
+    "lv",
+    "mk",
+    "mt",
+    "nl",
+    "no",
+    "pl",
+    "pt",
+    "ro",
+    "sq",
+    "sr",
+    "sk",
+    "sl",
+    "sv",
+}
 
 _HF_CTC_CACHE: dict[str, _CtcBundle] = {}
 _HF_PIPELINE_CACHE: dict[str, Any] = {}
@@ -49,15 +84,24 @@ def transcribe_audio(
             language_code=language_code,
             sample_rate_hz=sample_rate_hz,
         )
+    if selected == "parakeet_tdt":
+        return _transcribe_pipeline_asr(
+            audio_path=audio_path,
+            language_code=language_code,
+            backend_name="parakeet_tdt",
+            model_id=os.getenv(
+                "VOXALIGN_ASR_PARAKEET_TDT_MODEL_ID", _DEFAULT_PARAKEET_TDT_MODEL_ID
+            ),
+        )
     if selected == "crisper_whisper":
-        return _transcribe_whisper_like(
+        return _transcribe_pipeline_asr(
             audio_path=audio_path,
             language_code=language_code,
             backend_name="crisper_whisper",
             model_id=os.getenv("VOXALIGN_ASR_CRISPER_MODEL_ID", _DEFAULT_CRISPER_MODEL_ID),
         )
     if selected == "whisper_large_v3":
-        return _transcribe_whisper_like(
+        return _transcribe_pipeline_asr(
             audio_path=audio_path,
             language_code=language_code,
             backend_name="whisper_large_v3",
@@ -79,6 +123,8 @@ def _resolve_backend_choice(
     code = _normalize_language_code(language_code)
     if code == "en":
         return "crisper_whisper" if verbatim else "parakeet"
+    if code in _PARAKEET_TDT_EU_CODES:
+        return "parakeet_tdt"
     return "whisper_large_v3"
 
 
@@ -178,7 +224,7 @@ def _load_ctc_bundle(model_id: str) -> _CtcBundle | None:
     return bundle
 
 
-def _transcribe_whisper_like(
+def _transcribe_pipeline_asr(
     *,
     audio_path: str,
     language_code: str | None,
@@ -242,6 +288,15 @@ def _simulated_asr_result(
     code = _normalize_language_code(language_code) or "und"
     if backend == "crisper_whisper":
         transcript = os.getenv("VOXALIGN_ASR_SIM_CRISPER", "uh hello uh world")
+    elif backend == "parakeet_tdt":
+        if code == "fr":
+            transcript = os.getenv("VOXALIGN_ASR_SIM_PARAKEET_TDT_FR", "bonjour le monde")
+        elif code == "de":
+            transcript = os.getenv("VOXALIGN_ASR_SIM_PARAKEET_TDT_DE", "hallo welt")
+        elif code == "es":
+            transcript = os.getenv("VOXALIGN_ASR_SIM_PARAKEET_TDT_ES", "hola mundo")
+        else:
+            transcript = os.getenv("VOXALIGN_ASR_SIM_PARAKEET_TDT", "hello world")
     elif backend == "whisper_large_v3":
         if code == "ko":
             transcript = os.getenv("VOXALIGN_ASR_SIM_WHISPER_KO", "안녕하세요 반갑습니다")

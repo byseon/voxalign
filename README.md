@@ -135,8 +135,9 @@ uv run voxalign align sample.wav "hello world" --backend phoneme_first
 ASR backend selection:
 
 - `--asr disabled` (default; transcript required)
-- `--asr auto` (English: `parakeet`, non-English: `whisper_large_v3`)
+- `--asr auto` (English: `parakeet`; non-English European: `parakeet_tdt`; other: `whisper_large_v3`)
 - `--asr parakeet`
+- `--asr parakeet_tdt`
 - `--asr crisper_whisper`
 - `--asr whisper_large_v3`
 
@@ -191,6 +192,7 @@ Target phoneme-aligner ID for the phoneme-first path:
 ASR model IDs (override via env):
 
 - `VOXALIGN_ASR_PARAKEET_MODEL_ID` (default: `nvidia/parakeet-ctc-1.1b`)
+- `VOXALIGN_ASR_PARAKEET_TDT_MODEL_ID` (default: `nvidia/parakeet-tdt-0.6b-v3`)
 - `VOXALIGN_ASR_CRISPER_MODEL_ID` (default: `nyrahealth/CrisperWhisper`)
 - `VOXALIGN_ASR_WHISPER_MODEL_ID` (default: `openai/whisper-large-v3`)
 - `VOXALIGN_ASR_USE_HF=1` to enable real HF model inference
@@ -325,6 +327,7 @@ Developer/tooling dependencies used in this repo:
 Model licenses (downloaded from Hugging Face at runtime when enabled):
 
 - `nvidia/parakeet-ctc-1.1b`: CC-BY-4.0
+- `nvidia/parakeet-tdt-0.6b-v3`: CC-BY-4.0
 - `nyrahealth/CrisperWhisper`: CC-BY-NC-4.0 (non-commercial)
 - `openai/whisper-large-v3`: Apache-2.0
 - `facebook/wav2vec2-xlsr-53-espeak-cv-ft`: Apache-2.0

@@ -34,6 +34,7 @@ This plan is now synced to the detailed Notion architecture content provided in-
   - CLI/API scaffold, schema, normalization contract, timing primitives.
   - Trellis/Viterbi CTC backend with optional HF emissions and device selection.
   - MMS adapter loading for language-routed CTC usage.
+  - ASR auto routing wired (EN: Parakeet/optional Crisper, EU non-EN: Parakeet TDT, other: Whisper).
   - Benchmark harness + artifact archiving.
 - Gap to target:
   - Current backend is token CTC alignment, not full phoneme-first IPA pipeline.

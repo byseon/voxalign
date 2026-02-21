@@ -26,7 +26,19 @@ def test_asr_auto_routes_to_crisper_for_english_verbatim() -> None:
     assert result.transcript == "uh hello uh world"
 
 
-def test_asr_auto_routes_to_whisper_for_non_english() -> None:
+def test_asr_auto_routes_to_parakeet_tdt_for_european_non_english() -> None:
+    result = transcribe_audio(
+        audio_path="sample.wav",
+        language_code="fr",
+        backend="auto",
+        verbatim=False,
+    )
+    assert result.backend == "parakeet_tdt"
+    assert result.source == "simulated"
+    assert result.language_code == "fr"
+
+
+def test_asr_auto_routes_to_whisper_for_non_european_non_english() -> None:
     result = transcribe_audio(
         audio_path="sample.wav",
         language_code="ko",

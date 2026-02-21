@@ -41,7 +41,7 @@ Build a multilingual forced aligner that maps transcript words and phonemes to p
    - Status: in progress (multilingual HF IPA-emission path added behind env flag)
 7. English high-precision boundary path
    - Integrate Parakeet CTC 1.1B and evaluate Parakeet TDT backend
-   - Status: pending
+   - Status: in progress (Parakeet TDT auto-routing added for non-English European ASR)
 
 ## Primary Paths
 

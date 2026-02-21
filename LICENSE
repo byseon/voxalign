@@ -50,6 +50,7 @@ Developer tools
 Model assets (downloaded at runtime when enabled)
 -------------------------------------------------
 - nvidia/parakeet-ctc-1.1b: CC-BY-4.0
+- nvidia/parakeet-tdt-0.6b-v3: CC-BY-4.0
 - nyrahealth/CrisperWhisper: CC-BY-NC-4.0 (non-commercial)
 - openai/whisper-large-v3: Apache-2.0
 - facebook/wav2vec2-xlsr-53-espeak-cv-ft: Apache-2.0

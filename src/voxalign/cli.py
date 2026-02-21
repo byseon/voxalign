@@ -38,7 +38,14 @@ def build_parser() -> argparse.ArgumentParser:
     align.add_argument(
         "--asr",
         default="disabled",
-        choices=["disabled", "auto", "parakeet", "crisper_whisper", "whisper_large_v3"],
+        choices=[
+            "disabled",
+            "auto",
+            "parakeet",
+            "parakeet_tdt",
+            "crisper_whisper",
+            "whisper_large_v3",
+        ],
         help="ASR backend when transcript is omitted (default: disabled)",
     )
     align.add_argument(
